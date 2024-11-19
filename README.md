@@ -8,6 +8,148 @@
 
 Welcome to the Artificial Intelligence Fundamentals course project! This project is designed to provide hands-on experience with the core concepts and techniques in AI.
 
+### How to try the game
+
+The latest Dare Fighting ICE (v7.0beta) files were downloaded from [here](https://github.com/TeamFightingICE/FightingICE/releases).
+
+To try the game, you can run the following command inside DareFightingICE-7.0beta folder:
+
+Windows
+```bash
+java -cp FightingICE.jar;./lib/*;./lib/lwjgl/*;./lib/lwjgl/natives/windows/amd64/*;./lib/grpc/*; Main --limithp 400 400 --grey-bg
+```
+
+Ubuntu:
+```bash
+java -cp FightingICE.jar:./lib/*:./lib/lwjgl/*:./lib/lwjgl/natives/linux/amd64/*:./lib/grpc/* Main --limithp 400 400 --grey-bg
+```
+
+MacOS:
+```bash
+java -XstartOnFirstThread -cp FightingICE.jar:./lib/*:./lib/lwjgl/*:./lib/lwjgl/natives/macos/arm64/*:./lib/grpc/* Main --limithp 400 400 --grey-bg
+```
+
+Should pop up this window: 
+
+![Main Window](assets/main_window.png)
+
+In this game `z` has the same effect as `enter`.
+Hit `z` to start the game.
+
+You should see the following screen:
+
+![Character Selection](assets/screen-1.png)
+
+- Move the `up` and `down` arrows to select the menu sub-items.
+- Move the `left` and `right` arrows to select the player/character you want to play with.
+- In my case, External AI gave null point exception, due to absence of the necessary files.
+- I selected for Player 1: Keyboard and Player 2: MctsAi23i (which is a Monte Carlo Tree Search AI, I had already implemented).
+- Move back to `PLAY` and hit `z` to start the game.
+
+![Game Screen](assets/screen-2.png)
+
+### Python Integration
+
+Now we need to integrate the Python code with the game. To do this, we need to:
+
+- Create a virtual environment with a specific python version. I use `conda` for this purpose.
+
+```bash
+conda create -n AIF python=3.12
+```
+
+- Activate the environment
+
+```bash
+conda activate AIF
+```
+
+- Next, we need to install all the required packages in `requirements.txt` file, which are: 
+```python
+pyftg==2.3b0
+typer~=0.12.2
+typing_extensions~=4.8.0
+```
+with the command:
+```bash
+pip install -r requirements.txt
+```
+
+Now we are all set to integrate the Python code with the game.
+
+### Example of Python Integration
+
+Refer to [this](https://github.com/TeamFightingICE/pyftg/tree/master/examples) repository for more information.
+
+In the `example` folder, We have:
+
+- `DisplayInfo.py` which is an example of AI that utilizes screen data as input.
+- `KickAI.py` which is an example of AI that utilize a single command.
+- `Main_PyAIvsPyAI.py` which is an example of AI vs AI game setting. Both implementation are in Python.
+
+```python
+async def start_process(
+    host: str, port: int, character: str = "ZEN", game_num: int = 1
+):
+    gateway = Gateway(host, port)
+    agent1 = KickAI()
+    agent2 = DisplayInfo()
+    gateway.register_ai("KickAI", agent1)
+    gateway.register_ai("DisplayInfo", agent2)
+    await gateway.run_game([character, character], ["KickAI", "DisplayInfo"], game_num)
+```
+
+This function, in the `Main_PyAIvsPyAI.py` creates two agents and runs the game. Therefore, if we want to implement our agent, we should follow their structure (e.g. `KickAI.py`)
+
+Now we need to start the game, in one terminal (cmd):
+Go to the `DareFightingICE-7.0beta` folder and run:
+
+- Ubuntu:
+```bash
+java -cp FightingICE.jar:./lib/*:./lib/lwjgl/*:./lib/lwjgl/natives/linux/amd64/*:./lib/grpc/* Main --limithp 400 400 --grey-bg --pyftg-mode
+```
+- Windows:
+```bash
+java -cp FightingICE.jar;./lib/*;./lib/lwjgl/*;./lib/lwjgl/natives/windows/amd64/*;./lib/grpc/*; Main --limithp 400 400 --grey-bg --pyftg-mode 
+```
+- MacOS:
+```bash
+java -XstartOnFirstThread -cp FightingICE.jar:./lib/*:./lib/lwjgl/*:./lib/lwjgl/natives/macos/arm64/*:./lib/grpc/* Main --limithp 400 400 --grey-bg --pyftg-mode
+```
+
+You should see the following screen:
+
+![Game Screen](assets/screen-3.png)
+
+with terminal output:
+
+```bash
+Nov 19, 2024 3:57:58 PM manager.InputManager <init>
+INFO: Create instance: manager.InputManager
+Nov 19, 2024 3:57:58 PM manager.DisplayManager initialize
+INFO: Create Window 960x640
+Nov 19, 2024 3:57:59 PM manager.GraphicManager <init>
+INFO: Create instance: manager.GraphicManager
+Nov 19, 2024 3:57:59 PM loader.ResourceLoader <init>
+INFO: Create instance: loader.ResourceLoader
+Nov 19, 2024 3:57:59 PM core.Game initialize
+INFO: Socket server is started, listening on 31415
+Nov 19, 2024 3:57:59 PM gamescene.Socket initialize
+INFO: Waiting to launch a game
+```
+
+which means the game is ready to start and waits on port `31415` for the python agents indication.
+
+Next, we need to run the python code in another terminal (cmd). In the `example` folder, run:
+
+```bash
+python example/Main_PyAIvsPyAI.py --port 31414 --keyboard
+```
+`keyboard` is used so that we can control one of the agent with the keyboard. The other will be controlled by the code  in `DisplayInfo.py`.
+
+You should see the following screen:
+
+![Game Screen](assets/screen-4.png)
 ### Project Objectives
 
 - **Understand** the basics of AI and state-of-the-art algorithms.
