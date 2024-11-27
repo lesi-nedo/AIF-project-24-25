@@ -1,5 +1,10 @@
 import logging
 import numpy as np
+import os
+
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+
 
 from pyswip import Prolog
 
@@ -82,6 +87,9 @@ class KB():
         self.kb.assertz("knockback" + "(" + "player"+type+", "+ str(knock_x)+ ", " + str(knock_y) +")")
         self.kb.assertz("character_box("+"player"+type+", "+str(b1)+ ", " + str(b2) + ")")
         self.kb.assertz("hit_conferm("+"player"+type+", "+str(hit_conferm)+")")
+    
+    def close(self):
+        self.kb.close()
 
 
 Kb = KB()
@@ -150,4 +158,5 @@ class KickAI_KB(AIInterface):
         logger.info("game end")
         
     def close(self):
-        pass
+        Kb.close()
+    

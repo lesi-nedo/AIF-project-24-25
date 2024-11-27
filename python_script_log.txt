@@ -1,0 +1,66 @@
+Warning: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25/prolog_based/prolog_agent_simo/kb.pl:47:
+Warning:    Singleton variables: [FX,FY,FD,FD2,FX1,FY1]
+Warning: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25/prolog_based/prolog_agent_simo/kb.pl:48:
+Warning:    Singleton variables: [FD]
+Warning: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25/prolog_based/prolog_agent_simo/kb.pl:51:
+Warning:    Singleton variables: [Player2]
+Warning: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25/prolog_based/prolog_agent_simo/kb.pl:67:
+Warning:    Singleton variables: [Player1,Player2]
+2024-11-27 12:27:01.127 | DEBUG    | asyncio:__init__:64 - Using selector: EpollSelector
+2024-11-27 12:27:01.153 | INFO     | pyftg.socket.aio.gateway:start_ai:145 - Start P2 AI controller task (KickAI_KB)
+2024-11-27 12:27:02.912 | INFO     | KickAI_KB:initialize:110 - initialize
+Traceback (most recent call last):
+  File "/home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25/prolog_based/prolog_agent_simo/MainSimo.py", line 44, in <module>
+    app()
+  File "/home/lesi-nedo/miniforge3/envs/AIF/lib/python3.12/site-packages/typer/main.py", line 338, in __call__
+    raise e
+  File "/home/lesi-nedo/miniforge3/envs/AIF/lib/python3.12/site-packages/typer/main.py", line 321, in __call__
+    return get_command(self)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lesi-nedo/miniforge3/envs/AIF/lib/python3.12/site-packages/click/core.py", line 1157, in __call__
+    return self.main(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lesi-nedo/miniforge3/envs/AIF/lib/python3.12/site-packages/typer/core.py", line 665, in main
+    return _main(
+           ^^^^^^
+  File "/home/lesi-nedo/miniforge3/envs/AIF/lib/python3.12/site-packages/typer/core.py", line 197, in _main
+    rv = self.invoke(ctx)
+         ^^^^^^^^^^^^^^^^
+  File "/home/lesi-nedo/miniforge3/envs/AIF/lib/python3.12/site-packages/click/core.py", line 1434, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lesi-nedo/miniforge3/envs/AIF/lib/python3.12/site-packages/click/core.py", line 783, in invoke
+    return __callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lesi-nedo/miniforge3/envs/AIF/lib/python3.12/site-packages/typer/main.py", line 703, in wrapper
+    return callback(**use_params)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25/prolog_based/prolog_agent_simo/MainSimo.py", line 38, in main
+    asyncio.run(start_process(host, port))
+  File "/home/lesi-nedo/miniforge3/envs/AIF/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/home/lesi-nedo/miniforge3/envs/AIF/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lesi-nedo/miniforge3/envs/AIF/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25/prolog_based/prolog_agent_simo/MainSimo.py", line 23, in start_process
+    await gateway.run_game(
+  File "/home/lesi-nedo/miniforge3/envs/AIF/lib/python3.12/site-packages/pyftg/socket/aio/gateway.py", line 113, in run_game
+    await asyncio.gather(ai_task, run_game_task)
+  File "/home/lesi-nedo/miniforge3/envs/AIF/lib/python3.12/site-packages/pyftg/socket/aio/gateway.py", line 146, in start_ai
+    await asyncio.gather(*tasks)
+  File "/home/lesi-nedo/miniforge3/envs/AIF/lib/python3.12/site-packages/pyftg/socket/aio/ai_controller.py", line 66, in run
+    await loop.run_in_executor(None, self.ai.processing)
+  File "/home/lesi-nedo/miniforge3/envs/AIF/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25/prolog_based/prolog_agent_simo/KickAI_KB.py", line 142, in processing
+    Kb.update_every_round(self.mycharacter_data,"1",self.othercharacter_data.attack_data.impact_x,self.othercharacter_data.attack_data.impact_y,self.othercharacter_data.hit_confirm)
+  File "/home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25/prolog_based/prolog_agent_simo/KickAI_KB.py", line 70, in update_every_round
+    [b1,b2] = Utility.get_player_width_height(Player)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: Utility.get_player_width_height() takes 1 positional argument but 2 were given
+WARNING: Failed to stop Prolog threads. Not reclaming memory.
