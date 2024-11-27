@@ -1,5 +1,7 @@
 import logging
 
+from pyswip import Prolog
+
 from pyftg import (
     AIInterface,
     AudioData,
@@ -11,6 +13,7 @@ from pyftg import (
     ScreenData,
 )
 
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
