@@ -4,10 +4,8 @@ import os
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-
-
+from utility import Utility
 from pyswip import Prolog
-
 from pyftg import (AIInterface, AudioData, CommandCenter, FrameData, GameData,
                    Key, RoundResult, ScreenData)
 
@@ -17,40 +15,6 @@ from pyftg.models.character_data import CharacterData
 
 logger = logging.getLogger(__name__)
 logger.propagate = True
-
-class Utility():
-    @classmethod
-    def get_distance(Player1: CharacterData, Player2: CharacterData): # norm_2(pos1-pos2)
-        [x1,y1] = [Player1.x - Player2.x, Player1.y - Player2.y]
-        return np.linalg.norm([x1,y1])
-    @classmethod
-    def get_hp(Player1):
-        return Player1.get_hp()
-    @classmethod
-    def get_player_width_height(Player: CharacterData):
-        return [Player.right - Player.left, Player.bottom - Player.top]
-    @classmethod
-    def attack_in_range(Player1: CharacterData, Player2: CharacterData, Attack: AttackData):
-        pass
-    @classmethod
-    def is_attacking(Player: CharacterData):
-        return Player.attack_data and not Player.attack_data.empty_flag
-    @classmethod
-    def attack_will_collide(Attack: AttackData, Player: CharacterData):
-        [w,h] = Utility.get_player_width_height(Player)
-        [x,y] = [Player.x,Player.y]
-        if Player.speed_x:
-            x = x * Player.speed_x
-        if Player.speed_y:
-            y = y * Player.speed_y
-        hit_area = Attack.current_hit_area
-        if hit_area.right > x and hit_area.left < x + w and hit_area.bottom > y and hit_area.top < y + h:
-            return True
-        return False
-    @classmethod
-    def action_is_colliding_myself(Opponent: CharacterData):
-        return Opponent.hit_confirm
-
 
 class KB():
     def __init__(self):
