@@ -161,13 +161,6 @@ You should see the following screen:
 
 ### Project Title: **DareFightingICE AI Agent Development**
 
-### Team Members: 
-1. Person A - Project Lead & Game Strategy Design
-2. Person B - AI Agent Programming & Search Techniques
-3. Person C - Logic and Planning Specialist
-4. Person D - Probabilistic Reasoning & Uncertainty Management
-5. Person E - Multi-Agent Decision Making & Project Presentation
-
 ### Project Overview:
 The goal of this project is to develop an AI agent capable of competing in the game **DareFightingICE**, a 1v1 fighting game where agents can utilize sound, video, and statistical inputs such as health points (HP), time, and damage. Unlike previous iterations of the competition that primarily focused on Reinforcement Learning (RL), this project will apply a diverse set of AI methods drawn from the **AIF course syllabus**. These techniques will include **search algorithms**, **logical reasoning**, **constraint satisfaction**, **automated planning**, **multi-agent decision making**, and **probabilistic reasoning**.
 
@@ -213,16 +206,6 @@ We will exclude **Reinforcement Learning** methods and instead emphasize alterna
 
 ---
 
-### Task Distribution:
-Each team member will be responsible for a key aspect of the project:
-
-1. **Person A (Project Lead)**: Manage overall project coordination, integration of components, and testing.
-2. **Person B (AI Agent Programming)**: Develop and implement the agent’s control functions, search algorithms, and adversarial strategies.
-3. **Person C (Logic and Planning)**: Focus on logical reasoning, constraint satisfaction, and automated planning for action sequences.
-4. **Person D (Probabilistic Reasoning & Uncertainty Management)**: Implement probabilistic reasoning techniques for decision-making under uncertainty.
-5. **Person E (Multi-Agent Decision Making & Presentation)**: Work on multi-agent decision-making strategies and prepare the final project presentation.
-
----
 
 ### Conclusion:
 This project will create an AI agent capable of performing in the 1v1 DareFightingICE game environment. The agent will not rely on Reinforcement Learning but instead use classical AI techniques, including **adversarial search**, **constraint satisfaction**, **logical reasoning**, **automated planning**, and **probabilistic reasoning**. Each technique will contribute to a robust and competitive AI capable of dynamic decision-making in a highly adversarial setting.
@@ -231,7 +214,7 @@ This project will create an AI agent capable of performing in the 1v1 DareFighti
 
 - **Programming Languages:** Python
 - **Libraries:** To define
-- **Platforms:** Jupyter Notebook, Google Colab
+- **Platforms:** GitHub
 
 ### Evaluation Criteria
 

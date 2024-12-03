@@ -2,6 +2,12 @@
 
 STARTING_DIR=$(pwd)
 GAME_SCRIPT="./run-linux-amd64.sh"
+# Directory for the game environment
+GAME_DIR="DareFightingICE-7.0beta"
+STARTING_DIR=$(pwd)
+FILE="$1"
+PREFIX_FILE="${FILE##*.}"
+CLEANUP_DONE=0
 
 set -e
 # Function to check if in a virtual environment
@@ -40,24 +46,27 @@ check_virtual_environment() {
   return 1
 }
 
-# Game Environment Automation Script
-# Handles launching game and Python script with robust error management
-
-# Exit on any error
-set -e
-
-# Directory for the game environment
-GAME_DIR="DareFightingICE-7.0beta"
-STARTING_DIR=$(pwd)
-FILE="$1"
-PREFIX_FILE="${FILE##*.}"
-
 check_virtual_environment
 
 if [ -d "$1" ]; then
-  echo "Error: Python script not found"
-  echo "Usage: $0 <python_script>"
-  exit 1
+  MAIN_FILES=$(find "$1" -maxdepth 3 -type f -regex ".*[Mm]ain.*\.py")
+  COUNT=$(echo "$MAIN_FILES" | grep -c "^")
+
+  if [ "$COUNT" -eq 0 ]; then
+
+    echo "Error: Python script not found"
+    echo "Usage: $0 <python_script>"
+    exit 1
+  elif [ "$COUNT" -gt 1 ]; then
+    echo "Error: Multiple Python scripts found"
+    echo "Usage: $0 <python_script>"
+    exit 1
+  else
+    set -- "$MAIN_FILES"
+    FILE="$1"
+    PREFIX_FILE="${FILE##*.}"
+
+  fi
 fi
 
 if [ "$PREFIX_FILE" != "py" ]; then
@@ -68,6 +77,11 @@ fi
 
 # Function to handle cleanup and error management
 cleanup() {
+
+  if [ $CLEANUP_DONE -eq 1 ]; then
+    return
+  fi
+
   echo "Cleaning up resources..."
 
   # Terminate game process if it exists
@@ -83,6 +97,8 @@ cleanup() {
     kill -TERM "$PYTHON_PID" 2>/dev/null || true
     wait "$PYTHON_PID" 2>/dev/null || true
   fi
+
+  CLEANUP_DONE=1
 }
 
 # Trap exit signals to ensure cleanup

@@ -1,10 +1,10 @@
 import logging
-import numpy as np
 import os
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
+import numpy as np
 
 from pyswip import Prolog
 
@@ -19,23 +19,23 @@ logger = logging.getLogger(__name__)
 logger.propagate = True
 
 class Utility():
-    @classmethod
+    @staticmethod
     def get_distance(Player1: CharacterData, Player2: CharacterData): # norm_2(pos1-pos2)
         [x1,y1] = [Player1.x - Player2.x, Player1.y - Player2.y]
         return np.linalg.norm([x1,y1])
-    @classmethod
+    @staticmethod
     def get_hp(Player1):
         return Player1.get_hp()
-    @classmethod
+    @staticmethod
     def get_player_width_height(Player: CharacterData):
         return [Player.right - Player.left, Player.bottom - Player.top]
-    @classmethod
+    @staticmethod
     def attack_in_range(Player1: CharacterData, Player2: CharacterData, Attack: AttackData):
         pass
-    @classmethod
+    @staticmethod
     def is_attacking(Player: CharacterData):
         return Player.attack_data and not Player.attack_data.empty_flag
-    @classmethod
+    @staticmethod
     def attack_will_collide(Attack: AttackData, Player: CharacterData):
         [w,h] = Utility.get_player_width_height(Player)
         [x,y] = [Player.x,Player.y]
@@ -47,11 +47,10 @@ class Utility():
         if hit_area.right > x and hit_area.left < x + w and hit_area.bottom > y and hit_area.top < y + h:
             return True
         return False
-    @classmethod
+    @staticmethod
     def action_is_colliding_myself(Opponent: CharacterData):
         return Opponent.hit_confirm
-
-
+    
 class KB():
     def __init__(self):
         self.kb = Prolog()
@@ -87,9 +86,6 @@ class KB():
         self.kb.assertz("knockback" + "(" + "player"+type+", "+ str(knock_x)+ ", " + str(knock_y) +")")
         self.kb.assertz("character_box("+"player"+type+", "+str(b1)+ ", " + str(b2) + ")")
         self.kb.assertz("hit_conferm("+"player"+type+", "+str(hit_conferm)+")")
-    
-    def close(self):
-        self.kb.close()
 
 
 Kb = KB()
@@ -146,10 +142,10 @@ class KickAI_KB(AIInterface):
         else:
             resolve = list(Kb.query("optimal_action(player1, player2, Action)"))
             if resolve:
-                print(resolve)
+                logger.info(resolve)
             self.key.empty()
             self.cc.skill_cancel()
-            self.cc.command_call("B")
+            self.cc.command_call("C")
     
     def round_end(self, round_result: RoundResult):
         logger.info(f"round end: {round_result}")
@@ -158,5 +154,4 @@ class KickAI_KB(AIInterface):
         logger.info("game end")
         
     def close(self):
-        Kb.close()
-    
+        pass
