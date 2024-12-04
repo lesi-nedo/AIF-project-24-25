@@ -145,7 +145,7 @@ class KickAI_KB(AIInterface):
                 logger.info(resolve)
             self.key.empty()
             self.cc.skill_cancel()
-            self.cc.command_call("2 3 6 _ C")
+            self.cc.command_call("C")
     
     def round_end(self, round_result: RoundResult):
         logger.info(f"round end: {round_result}")
