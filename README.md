@@ -143,7 +143,7 @@ which means the game is ready to start and waits on port `31415` for the python 
 Next, we need to run the python code in another terminal (cmd). In the `example` folder, run:
 
 ```bash
-python example/Main_PyAIvsPyAI.py --port 31414 --keyboard
+python example/Main_PyAIvsPyAI.py --port 31415 --keyboard
 ```
 `keyboard` is used so that we can control one of the agent with the keyboard. The other will be controlled by the code  in `DisplayInfo.py`.
 
