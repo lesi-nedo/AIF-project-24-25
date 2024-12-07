@@ -1,9 +1,10 @@
 :- use_module('prolog_based/problog_agent_ole/terms.py').
+:- use_module(library(lists)).
 % Remember delay of 14/15 frames before the action is executed
 
 agent(me).
 agent(opponent).
-
+% add is facing
 
 
 0.40::possible_state(stand).
@@ -20,15 +21,6 @@ P::state(A, S, C_S, N) :-
     C_S =< N, P is C_S/N.
 
 is_stand(A, S) :- state(A, S, _, _), S = stand.
-
-action_makes_fly_opponent(S) :- S = stand_f_d_dfb; S = stand_d_df_fc.
-
-action_downs_opponent(S) :- S = stand_f_d_dfb; S = stand_f_d_dfa; S = stand_d_db_bb; S = crouch_fb; S = stand_d_df_fc.
-
-action_pushes_opponent(S) :- 
-    S = stand_f_d_dfb; S = stand_f_d_dfa; 
-    S = stand_d_db_bb; S = crouch_fb; 
-    S = stand_d_df_fc; S = air_d_df_fa; S = stand_fa; S = stand_fb.
 
 
 0.8::health_value(A, X) :- agent(A), curr_hp_value(A, X).
@@ -73,6 +65,20 @@ action_pushes_opponent(S) :-
 0.25::energy(medium) :- energy_value(X), X >= 10, X < 50.
 0.4::energy(low) :- energy_value(X), X < 10.
 
+action_makes_fly_opponent(S) :- S = stand_f_d_dfb; S = stand_d_df_fc.
+
+action_downs_opponent(S) :- S = stand_f_d_dfb; S = stand_f_d_dfa; S = stand_d_db_bb; S = crouch_fb; S = stand_d_df_fc.
+
+action_failed(Agent, S, Opponent) :- 
+    curr_hp_value(Opponent, X),
+    prev_hp_value(Opponent, Y),
+    X = Y.
+    
+action_pushes_opponent(S) :- 
+    S = stand_f_d_dfb; S = stand_f_d_dfa; 
+    S = stand_d_db_bb; S = crouch_fb; 
+    S = stand_d_df_fc; S = air_d_df_fa; S = stand_fa; S = stand_fb.
+
 % Keep base state and action probabilities unchanged...
 
 % Damage facts with Agent parameter
@@ -86,7 +92,12 @@ damage(Agent, air_d_df_fa, 10) :- agent(Agent).
 damage(Agent, stand_f_d_dfa, 10) :- agent(Agent).
 damage(Agent, stand_f_d_dfb, 40) :- agent(Agent).
 damage(Agent, stand_d_db_bb, 25) :- agent(Agent).
-damage(Agent, unknown, _) :- agent(Agent).
+
+damage(Agent, Action, 0) :- 
+    agent(Agent),
+    (m_action(Action); d_action(Action)),
+    \+ (damage(Agent, Action, D), D > 0).
+
 
 % Energy cost facts with Agent parameter
 energy_cost(Agent, stand_d_df_fc, 150) :- agent(Agent).
@@ -95,6 +106,11 @@ energy_cost(Agent, air_d_df_fa, 5) :- agent(Agent).
 energy_cost(Agent, stand_f_d_dfa, 0) :- agent(Agent).
 energy_cost(Agent, stand_d_db_bb, 50) :- agent(Agent).
 energy_cost(Agent, air_d_db_ba, 5) :- agent(Agent).
+
+energy_cost(Agent, Action, 0) :-
+    agent(Agent),
+    (m_action(Action); d_action(Action)),
+    \+ (energy_cost(Agent, Action, C), C > 0).
 
 % Energy gain facts with Agent parameter
 energy_gain(Agent, crouch_fb, 10) :- agent(Agent).
@@ -108,8 +124,13 @@ energy_gain(Agent, stand_f_d_dfa, 5) :- agent(Agent).
 energy_gain(Agent, stand_f_d_dfb, 40) :- agent(Agent).
 energy_gain(Agent, stand_d_db_bb, 20) :- agent(Agent).
 
+energy_gain(Agent, Action, 0) :-
+    agent(Agent),
+    (m_action(Action); d_action(Action)),
+    \+ (energy_gain(Agent, Action, G), G > 0).
+
 % Distance facts with Agent parameter
-max_distance_to_hit(Agent, stand_d_df_fc, _) :- agent(Agent).
+max_distance_to_hit(Agent, stand_d_df_fc, 1000) :- agent(Agent).
 min_distance_to_hit(Agent, stand_d_df_fc, 0) :- agent(Agent).
 max_distance_to_hit(Agent, crouch_fb, 200) :- agent(Agent).
 max_distance_to_hit(Agent, stand_fb, 227) :- agent(Agent).
@@ -137,7 +158,7 @@ can_perform_s_action(Agent, A) :-
     E >= EC.
     % max_distance_to_hit(Agent, A, MD),
     % min_distance_to_hit(Agent, A, MiD), 
-    % distance(D), 
+    % distance_x(D), 
     % D =< MD, 
     % D >= MiD.
 
@@ -146,23 +167,61 @@ action(back_jump, Agent1) :- agent(Agent1), agent(Agent2), Agent1 \= Agent2, can
 action(air_d_db_ba, Agent2) :- agent(Agent1), agent(Agent2), Agent1 \= Agent2, can_perform_action(Agent2, stand_d_df_fa).
 
 
-% First, add a predicate to handle valid actions only
-valid_actions(Agent, Actions) :-
-    findall(A, (
-        s_action(A),
+action_utility(Agent, Action, Utility) :-
+    damage(Agent, Action, Damage),
+    energy_gain(Agent, Action, EGain),
+    % Handle different action types with parentheses
+    (
+        ((s_action(Action); b_action(Action)),
+         Utility is (0.7 * Damage/120 + 0.3 * EGain/40))
+        ;
+        ((m_action(Action); d_action(Action)),
+         energy_value(Agent, E),
+         (
+             (E < 10, Utility is 0.5) % High priority when low energy
+             ;
+             Utility is 0.4           % Lower priority otherwise
+         ))
+    ).
+
+% Sort actions by utility
+0.8::optimal_action(Agent, BestAction) :-
+    findall(Utility-Action, (
+        % Base constraints
+        (s_action(Action); b_action(Action)),
         energy_value(Agent, E),
-        energy_cost(Agent, A, EC),
-        E >= EC
-    ), Actions),
-    Actions \= [].  % Ensure non-empty list
+        energy_cost(Agent, Action, EC),
+        E >= EC,
+        % Distance check
+        max_distance_to_hit(Agent, Action, MD),
+        min_distance_to_hit(Agent, Action, MiD),
+        curr_pos(Agent, X1, _),
+        curr_pos(Opponent, X2, _),
+        Agent \= Opponent,
+        D is abs(X1 - X2),
+        D =< MD,
+        D >= MiD,
+        % Calculate utility
+        action_utility(Agent, Action, Utility)
+    ), ActionList),
+   (
+        (ActionList = [], 
+            % Fallback to basic movement with utility 0.1
+            BestAction = back_step)
+        ;
+           (sort(ActionList, SortedList),
+            member(MaxUtility-BestAction, SortedList),
+            \+ (member(U-_, SortedList), U > MaxUtility))
+    ).
 
+% Probabilistic selection of optimal action
+0.8::select_optimal_action(Agent, Action) :-
+    optimal_action(Agent, Action).
 
-% Then modify the query to use it
-1.0::all_actions(Agent, Actions) :- 
-    valid_actions(Agent, Actions).
+% Query
+query(select_optimal_action(me, A)).
 
 
 % query(health(me, _, X)).
 
 
-query(all_actions(me, X)).

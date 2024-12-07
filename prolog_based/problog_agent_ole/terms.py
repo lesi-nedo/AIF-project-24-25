@@ -4,9 +4,11 @@ from problog.extern import problog_export
 
 
 @problog_export('+int', '+int', '-int')
-def get_distance(player_x: int, opponent_x: int) -> int:
-    """Calculate absolute distance between player centers"""
-    return abs(player_x - opponent_x)
+def distance_x(player_x: int,  opponent_x: int) -> int:
+    """Calculate the euclidean distance between two points"""
+    return int(abs(player_x - opponent_x))
+
+    
 
 # def get_range_type(distance: int) -> str:
 #     """Get the range category based on distance"""
