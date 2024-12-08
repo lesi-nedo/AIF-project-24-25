@@ -39,7 +39,7 @@ problog_logger.setLevel(logging.ERROR)
 
 class ProblogAgent(AIInterface):
     def __init__(self, k_best_value: int = 5):
-        time.sleep(15)
+        time.sleep(20)
         super().__init__()
         self.blind_flag = True
         self.cache = ProblogCache(maxsize=256)  # Adjust size as needed
@@ -75,6 +75,12 @@ class ProblogAgent(AIInterface):
         self.prefix = "prolog_based/problog_agent_ole/"
         self.kb_rules_file_name = "KB_V1.pl"
         self.kb_path_rules = self.prefix + self.kb_rules_file_name
+        self.exec_action = ["dash"]
+
+        self.default_positions = {
+            0: (720, 537),
+            1: (240, 537)
+        }
 
         self.counters = {
             'me': {
@@ -138,8 +144,8 @@ class ProblogAgent(AIInterface):
         self.my_state = [Action.STAND]
         self.opponent_state = [Action.STAND]
 
-        self.my_curr_pos = [(0, 0)]
-        self.opponent_curr_pos = [(0, 0)]
+        self.my_curr_pos = [self.default_positions.get(self.my_number)]
+        self.opponent_curr_pos = [self.default_positions.get(self.opponent_number)]
 
 
         self.db_enriched = self.db_org.extend()
@@ -161,6 +167,9 @@ class ProblogAgent(AIInterface):
 
         me_curr_pos = f"curr_pos(me, {self.my_curr_pos[0][0]}, {self.my_curr_pos[0][1]}).\n"
         opponent_curr_pos = f"curr_pos(opponent, {self.opponent_curr_pos[0][0]}, {self.opponent_curr_pos[0][1]}).\n"
+        self.exec_action = ["dash"]
+        self.count_frames = 0
+
 
         str_concat = "\n".join([
             me_str_hp, me_str_energy, opponent_str_hp, opponent_str_energy, count_state_me, 
@@ -302,6 +311,7 @@ class ProblogAgent(AIInterface):
     def select_action_from_problog_results(self, result):
         """Selects an action probabilistically from ProbLog k-best results."""
         try:
+            # typer.echo(f"Result: {result}")
             # Check if result exists and is iterable
             if not result or not hasattr(result, 'items'):
                 typer.echo(f"Result: {result}")
@@ -320,12 +330,13 @@ class ProblogAgent(AIInterface):
                     #     typer.echo(f"Args: {res.args}")
                     # typer.echo(f"Type args: {type(res.args[1])}")
                     # Get actions   list from result
-                    action = res.args[1] if hasattr(res, 'args') else res
+                    action = res.args[0] if hasattr(res, 'args') else res
                     if isinstance(action, Term):
                         action = term2str(action)
-                        return action
-                    
-                    action = term2list(action)
+                        action_probs.append((action, float(prob)))
+                    else:
+                        action = term2list(action)
+                        return random.choice(action)
                     
 
                     
@@ -341,9 +352,7 @@ class ProblogAgent(AIInterface):
             
             # Choose action list based on probabilities
             actions_list, probs = zip(*action_probs)
-            chosen_actions = random.choices(actions_list, weights=probs, k=1)[0]
-            
-            return random.choice(chosen_actions) if chosen_actions else None
+            return random.choices(actions_list, weights=probs, k=1)[0]
         
         except Exception as e:
             typer.echo(f"Error in select_action_from_problog_results: {e}")
@@ -355,14 +364,14 @@ class ProblogAgent(AIInterface):
             return
         diff = 0
         diff_my_energy = 0
-
+        
         if self.sent:
             self.count_frames += 1
 
         if self.cc.get_skill_flag(): 
             self.key = self.cc.get_skill_key()
         else:
-
+            
             self.key.empty()
             self.cc.skill_cancel()
             self.opponent_actions_type.append(self.estimate_opponent_action())
@@ -373,15 +382,13 @@ class ProblogAgent(AIInterface):
             self.opponent_curr_pos.append((self.opponent_character_data.x, self.opponent_character_data.y))
 
             diff_my_energy = abs(self.my_energy[-1] - self.my_character_data.energy)
+            diff_opponent_hp = abs(self.opponent_hps[-1] - self.opponent_character_data.hp)
 
             
             self._increment_counter('me', self.my_character_data.state.value)
             self._increment_counter('opponent', self.opponent_character_data.state.value)
 
-        
-            query_state = Term("possible_state", Term(self.my_character_data.state.value))
-
-
+            
             db = self._add_to_db_hp_energy_state()
             lf = self.engine.ground_all(
                 db,
@@ -399,8 +406,9 @@ class ProblogAgent(AIInterface):
 
             action = term2str(action).upper()
             typer.echo(f"Action to Take: {action}")
+            self.exec_action.append(action)
             if action:
-                self.cc.command_call(action)
+                self.cc.command_call(self.exec_action[-2])
             
 
             # if self.frame_data.current_frame_number % 37 == 0:
@@ -439,12 +447,12 @@ class ProblogAgent(AIInterface):
                 
             # else:
             #     self.sent = True
-            #     self.cc.command_call(getattr(Action, "air_d_db_ba".upper()).value.upper())
+            #     self.cc.command_call(getattr(Action, "stand_b".upper()).value.upper())
                 
             
-            # if diff_my_energy > 0 and self.enough:
+            # if diff_opponent_hp > 0 and self.enough:
             #     self.sent = False
-            #     # typer.echo(f"Player energy: {self.my_character_data.energy} --- here: {self.here} --- count_frames: {self.count_frames}")
+            #     typer.echo(f"Diff distance: {self.my_character_data.x - self.opponent_character_data.x}")
             #     self.count_frames = 0
             #     self.here = 0
 
@@ -538,7 +546,6 @@ class ProblogAgent(AIInterface):
     
     def _add_to_db_hp_energy_state(self):
         db = self.db_org.extend()
-        changed = False
         
         my_str_hp, my_str_energy = self._get_clause_eng_hp("me")
         opponent_str_hp, opponent_str_energy = self._get_clause_eng_hp("opponent")
@@ -551,28 +558,23 @@ class ProblogAgent(AIInterface):
         my_prev_action_type = self._get_clause_prev_action("me")
         opponent_prev_action_type = self._get_clause_prev_action("opponent")
 
-        if self.my_character_data.hp != self.my_hps[-1] or self.my_character_data.energy != self.my_energy[-1]:
-            concat_str = "\n".join([
-                my_str_hp, my_str_energy, my_state_clause, my_total_states_clause, 
-                my_prev_hp, my_prev_energy, my_curr_pos, my_prev_action_type
-            ])
-            for statement in PrologString(concat_str):
-                db += statement
-            changed = True
-
-        if self.opponent_character_data.hp != self.opponent_hps[-1] or self.opponent_character_data.energy != self.opponent_energy[-1]:
-            concat_str = "\n".join([
-                opponent_str_hp, opponent_str_energy, opponent_state_clause, opponent_total_states_clause, 
-                opponent_prev_hp, opponent_prev_energy, opponent_curr_pos, opponent_prev_action_type
-            ])
-            for statement in PrologString(concat_str):
-                db += statement
-            changed = True
         
-        if changed:        
-            self.db_enriched = db
+        concat_str = "\n".join([
+            my_str_hp, my_str_energy, my_state_clause, my_total_states_clause, 
+            my_prev_hp, my_prev_energy, my_curr_pos, my_prev_action_type
+        ])
+        for statement in PrologString(concat_str):
+            db += statement
+
+        concat_str = "\n".join([
+            opponent_str_hp, opponent_str_energy, opponent_state_clause, opponent_total_states_clause, 
+            opponent_prev_hp, opponent_prev_energy, opponent_curr_pos, opponent_prev_action_type
+        ])
+        for statement in PrologString(concat_str):
+            db += statement
+    
             
-        return self.db_enriched
+        return db
         
         
     def _increment_counter(self, agent: str, state: str) -> None:
