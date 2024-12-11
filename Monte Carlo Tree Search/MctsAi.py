@@ -88,15 +88,10 @@ class MctsAi(AIInterface):
     def processing(self):
         if self.frame_data.empty_flag or self.frame_data.current_frame_number <= 0:
             return
-        MctsAi.retract_frame_info()
-        MctsAi.update_every_round(self.mycharacter_data,"1",self.othercharacter_data.attack_data.impact_x,self.othercharacter_data.attack_data.impact_y,self.othercharacter_data.hit_confirm)
-        MctsAi.update_every_round(self.othercharacter_data,"2",self.mycharacter_data.attack_data.impact_x,self.mycharacter_data.attack_data.impact_y,self.mycharacter_data.hit_confirm)
         if self.cc.get_skill_flag():
             self.key = self.cc.get_skill_key()
         else:
-            resolve = list(MctsAi.query("optimal_action(player1, player2, Action)"))
-            if resolve:
-                print(resolve)
+            
             self.key.empty()
             self.cc.skill_cancel()
             self.cc.command_call("B")
