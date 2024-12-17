@@ -165,13 +165,27 @@ class FighterState(BaseState):
         newState.mycharacter_data.speed_x = vel_x
         newState.mycharacter_data.speed_y = vel_y
         player_position = Utility.predict_position(newState.mycharacter_data, newState.othercharacter_data)[current_player]
-        #logger.info(str(newState.current_player)+"\n" + "X position: " + str(newState.mycharacter_data.x))
-        #logger.info("Y position: " + str(newState.mycharacter_data.y))
         
         newState.mycharacter_data.x = player_position[0]
         newState.mycharacter_data.y = player_position[1]
         newState.mycharacter_data.speed_x = 0
         newState.mycharacter_data.speed_y = 0
+
+        if newState.mycharacter_data.x < 0:
+            newState.mycharacter_data.x = 0
+
+        if newState.mycharacter_data.y < 0:
+            newState.mycharacter_data.y = 0
+        
+        if newState.mycharacter_data.x > 960:
+            newState.mycharacter_data.x = 960
+
+        if newState.mycharacter_data.y > 640:
+            newState.mycharacter_data.y = 640
+
+        logger.info(str(newState.current_player)+"\n" + "X position: " + str(newState.mycharacter_data.x))
+        #logger.info("Y position: " + str(newState.mycharacter_data.y))
+
         newState.distance = Utility.get_actual_distance(newState.mycharacter_data, newState.othercharacter_data)
 
         # se colpiti sottrarre la salute dei personaggi (dipende tutto dall'azione)
@@ -200,7 +214,9 @@ class FighterState(BaseState):
 
             newState.delta_pl_hp = newState.mycharacter_data.hp - newState.after_hp[current_player]
 
-        newState.mycharacter_data, newState.othercharacter_data = newState.othercharacter_data, newState.mycharacter_data
+        temp = newState.mycharacter_data
+        newState.mycharacter_data = newState.othercharacter_data
+        newState.othercharacter_data = temp
         newState.current_player = newState.current_player * -1
         return newState
 
@@ -220,12 +236,11 @@ class FighterState(BaseState):
         delta_energy = self.delta_energy
         energy_norm = delta_energy/self.game_data.max_energies[current_player]
 
-        hp_pl_norm = self.delta_pl_hp/400
+        hp_pl_norm = self.delta_pl_hp
 
-       
-        hp_opp_norm = self.delta_opp_hp/400
-
-        score = (1-energy_norm) * (hp_opp_norm - hp_pl_norm - self.distance) + (energy_norm) * (hp_opp_norm - hp_pl_norm + self.distance)
+        hp_opp_norm = self.delta_opp_hp
+        
+        score = (1-energy_norm) * (hp_pl_norm - hp_opp_norm - self.distance) + (energy_norm) * (hp_pl_norm - hp_opp_norm + self.distance)
         #logger.info("QUESTO È LO SCORE PER IL NODO CORRENTE: "+str(self.distance))
         return score
     
