@@ -75,7 +75,7 @@ class MctsAi(AIInterface):
             try:
                 best_action = searcher.search(initialState=initial_state)
                 #self.cc.command_call(best_action)
-                #logger.info("AZIONE MIGLIORE: "+len(best_action))
+                logger.info("AZIONE MIGLIORE: "+len(best_action))
             except Exception as e:
                 tb = sys.exc_info()[-1]
                 stk = traceback.extract_tb(tb, 1)

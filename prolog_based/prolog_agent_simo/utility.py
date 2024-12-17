@@ -15,7 +15,7 @@ class Utility():
         p1_p2_final = [[None],[None]]
         [p1_vx, p1_vy] = [Player1.speed_x, Player1.speed_y]
         [p1_x, p1_y] = [Player1.x, Player1.y]
-        [p1_f, p2_f] = [int(Player1.front), int(Player2.front) if Player2 else 0]
+        [p1_f, p2_f] = [1 if Player1.front else -1, 1 if Player2.front else -1]
         p1_predicted_x_y = [p1_x + p1_vx * p1_f * default_scaling_factor, p1_y + p1_vy * p1_f * default_scaling_factor]
         p1_p2_final[0] = p1_predicted_x_y
         if Player2 != None:
