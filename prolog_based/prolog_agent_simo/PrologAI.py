@@ -14,7 +14,7 @@ from pyftg.models.character_data import CharacterData
 logger = logging.getLogger(__name__)
 logger.propagate = True
 
-martial = ["STAND_B", "CROUCH_A", "CROUCH_B", "STAND_FB", "STAND_FA", "AIR _FA", "AIR _FB", "AIR _DB"]
+martial = ["STAND_B", "CROUCH_A", "CROUCH_B", "STAND_FB", "STAND_FA", "CROUCH_FA", "CROUCH_FB", "STAND_F_D_DFA"]
 map_names = {"stand_medium_punch" : "STAND_A", "stand_medium_kick" : "STAND_B", "fireball" : "STAND_D_DF_FA", "crouch_medium_punch": "CROUCH_A", "crouch_heavy_punch" : "CROUCH_B", "crouch_medium_kick" : "CROUCH_FA", "evade": "BACK_JUMP", "wait" : "FORWARD_WALK", "defend" : "STAND_GUARD", "ultra" : "STAND_D_DF_FC"}
 class KB():
     def __init__(self):
