@@ -18,6 +18,7 @@ skill_energy_cost(crouch_medium_kick, 0).
 skill_energy_cost(air_medium_punch, 0).
 skill_energy_cost(air_medium_kick, 0).
 skill_energy_cost(fireball, 5).
+skill_energy_cost(ultra, 150).
 
 %% Euristica aggressività giocatore in base all'hp
 hp_threshold(aggressive, 50).
@@ -29,7 +30,7 @@ frame_duration(16.67).
 frame_scaling_factor(15).
 over_safe_distance(200).
 bound_projectile(150).
-bound_martial(200).
+bound_martial(150).
 boud_hp_strategy(15)
 
 % State and Action Predicates
@@ -85,6 +86,8 @@ should_attack(Player1, Player2, AttackID) :- strategy(Player1, aggressive), play
 should_use_projectile(Player1, Player2, AttackID) :- can_shot_projectile(Player1, Player2), skill_energy_cost(AttackID, Cost), character_hp_energy(Player1, _, Energy), Energy >= Cost, AttackID = fireball.
 should_use_martial(Player1, Player2, AttackID) :- can_hit_martial(Player1, Player2), skill_energy_cost(AttackID, Cost), character_hp_energy(Player1, _, Energy), Energy >= Cost, (AttackID = stand_medium_punch; AttackID = stand_medium_kick).
 should_evade_or_block(Player1, Player2) :- bound_projectile(B), was_hostile(Player2, ID), (ID = fireball), player_predict_distance(Player1, Player2, Distance), Distance > B, player_can_defense(Player1, Player2).
+should_ultra(Player1) :- skill_energy_cost(ultra, Cost), character_hp_energy(Player1, _, Energy), (Energy >= Cost).
+optimal_action(Player1, Player2, Action) :- should_ultra(Player1), !, Action = ultra.
 optimal_action(Player1, Player2, Action) :- should_use_martial(Player1, Player2, AttackID), !, Action = AttackID.
 optimal_action(Player1, Player2, Action) :- should_use_projectile(Player1, Player2, AttackID),  !, Action = AttackID.
 optimal_action(Player1, Player2, Action) :- should_defend(Player1, Player2), !, Action = defend.

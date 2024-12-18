@@ -14,8 +14,8 @@ from pyftg.models.character_data import CharacterData
 logger = logging.getLogger(__name__)
 logger.propagate = True
 
-martial = ["STAND_B", "CROUCH_A", "CROUCH_B", "STAND_FB", "STAND_FA"]
-map_names = {"stand_medium_punch" : "STAND_A", "stand_medium_kick" : "STAND_B", "fireball" : "STAND_D_DF_FA", "crouch_medium_punch": "CROUCH_A", "crouch_heavy_punch" : "CROUCH_B", "crouch_medium_kick" : "CROUCH_FA", "evade": "BACK_JUMP", "wait" : "STAND_D_DF_FA", "defend" : "STAND_GUARD"}
+martial = ["STAND_B", "CROUCH_A", "CROUCH_B", "STAND_FB", "STAND_FA", "AIR _FA", "AIR _FB", "AIR _DB"]
+map_names = {"stand_medium_punch" : "STAND_A", "stand_medium_kick" : "STAND_B", "fireball" : "STAND_D_DF_FA", "crouch_medium_punch": "CROUCH_A", "crouch_heavy_punch" : "CROUCH_B", "crouch_medium_kick" : "CROUCH_FA", "evade": "BACK_JUMP", "wait" : "FORWARD_WALK", "defend" : "STAND_GUARD", "ultra" : "STAND_D_DF_FC"}
 class KB():
     def __init__(self):
         self.kb = Prolog()
@@ -67,7 +67,7 @@ class KB():
 Kb = KB()
 Kb.kb.consult("kb.pl")
 
-class KickAI_KB(AIInterface):
+class PrologAI(AIInterface):
     def __init__(self):
         super().__init__()
         self.blind_flag = True
@@ -125,8 +125,8 @@ class KickAI_KB(AIInterface):
                 action = map_names[resolve[0]["Action"]]
                 if action == "STAND_A":
                     # Chance of doing martial change
-                    chance = random.randint(0,1)
-                    if chance == 0: # 50 (non uniformed, so i don't think this is the case)
+                    chance = random.randint(0,10)
+                    if chance >= 3: # ~66% (non uniformed, so i don't think this is the case)
                         x = random.randint(0, len(martial)-1)
                         action = martial[x]
             self.cc.command_call(action)
