@@ -1,8 +1,6 @@
 import logging
+import random
 import numpy as np
-import os
-
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 from utility import Utility
 from pyswip import Prolog
@@ -16,41 +14,51 @@ from pyftg.models.character_data import CharacterData
 logger = logging.getLogger(__name__)
 logger.propagate = True
 
+martial = ["STAND_B", "CROUCH_A", "CROUCH_B", "STAND_FB", "STAND_FA"]
+map_names = {"stand_medium_punch" : "STAND_A", "stand_medium_kick" : "STAND_B", "fireball" : "STAND_D_DF_FA", "crouch_medium_punch": "CROUCH_A", "crouch_heavy_punch" : "CROUCH_B", "crouch_medium_kick" : "CROUCH_FA", "evade": "BACK_JUMP", "wait" : "STAND_D_DF_FA", "defend" : "STAND_GUARD"}
 class KB():
     def __init__(self):
         self.kb = Prolog()
     def query(self, q):
         return self.kb.query(q)
     def retract_frame_info(self):
-        self.kb.retractall("character_state(_, _)")
-        self.kb.retractall("character_action(_, _)")
-        self.kb.retractall("character_xyd(_, _, _, _)")
-        self.kb.retractall("character_speed(_, _, _)")
-        self.kb.retractall("character_hp_energy(_, _, _)")
-        self.kb.retractall("hit_area(_, _, _, _, _)")
-        self.kb.retractall("hit_conferm(_, _)")
+        # Supporting Data Predicates
         self.kb.retractall("character_attack(_, _)")
+        self.kb.retractall("character_speed(_, _, _)")
+        self.kb.retractall("knocself.kback(_, _, _)")
+        self.kb.retractall("character_xyd(_, _, _, _)")
+        self.kb.retractall("character_box(_, _, _)")
+        self.kb.retractall("hp_threshold(_, _)")
+        self.kb.retractall("character_hp_energy(_, _, _)")
+        self.kb.retractall("character_state(_, _)")
+        self.kb.retractall("hit_area(_, _, _, _, _)")
+        self.kb.retractall("knockback(_, _, _)")
+        self.kb.retractall("hit_conferm(_, _)")
+        self.kb.retractall("character_action(_, _)")
+
     def update_every_round(self, Player: CharacterData, type: str, knock_x, knock_y, h_conferm):
         [b1,b2] = Utility.get_player_width_height(Player)
         facing = -1
         hit_conferm = 0 if h_conferm == False else 1
         if Player.front:
             facing = 1
-        #logger.info("character_state("+"player"+type+", "+Player.state+")")
+        #logger.info("character_state("+"player"+type+", "+str(Player.state._value_)+")")
         #logger.info("character_action("+"player"+type+", "+str(Player.action.value)+")")
         #logger.info("character_xyd("+"player"+type+", "+str(Player.x) +", "+ str(Player.y) +"," + str(facing) + ")")
         #logger.info("character_speed("+"player"+type+", "+str(Player.speed_x)+ ", " + str(Player.speed_y) + ")")
         #logger.info("hit_area("+"player"+type+", "+str(Player.attack_data.current_hit_area.left)+ ", " + str(Player.attack_data.current_hit_area.right) + ", " + str(Player.attack_data.current_hit_area.top) + ", " + str(Player.attack_data.current_hit_area.bottom) + ")")
         #logger.info("character_attack("+"player"+type+", "+str(Player.attack_data.start_up)+ ", " + str(Player.attack_data.is_live).lower() + ", " + str(Player.attack_data.speed_x) + ", " + str(Player.attack_data.speed_y) +", " + str(Player.attack_data.is_projectile).lower() + ")")
-        self.kb.assertz("character_state("+"player"+type+", "+Player.state+")")
-        self.kb.assertz("character_action("+"player"+type+", "+str(Player.action.value)+")")
-        self.kb.assertz("character_xyd("+"player"+type+", "+str(Player.x) +", "+ str(Player.y) +", " + str(facing) + ")")
-        self.kb.assertz("character_speed("+"player"+type+", "+str(Player.speed_x)+ ", " + str(Player.speed_y) + ")")
-        self.kb.assertz("hit_area("+"player"+type+", "+str(Player.attack_data.current_hit_area.left)+ ", " + str(Player.attack_data.current_hit_area.right) + ", " + str(Player.attack_data.current_hit_area.top) + ", " + str(Player.attack_data.current_hit_area.bottom) + ")")
-        self.kb.assertz("character_attack("+"player"+type+", "+str(Player.attack_data.attack_type)+ ")")
-        self.kb.assertz("knockback" + "(" + "player"+type+", "+ str(knock_x)+ ", " + str(knock_y) +")")
-        self.kb.assertz("character_box("+"player"+type+", "+str(b1)+ ", " + str(b2) + ")")
-        self.kb.assertz("hit_conferm("+"player"+type+", "+str(hit_conferm)+")")
+        #logger.info("knockback" + "(" + "player"+type+", "+ str(knock_x)+ ", " + str(knock_y) +")")
+        self.kb.asserta("character_hp_energy("+"player"+type+", "+str(Player.hp)+ ", " + str(Player.energy)+ ")")
+        self.kb.asserta("character_state("+"player"+type+", "+str(Player.state._value_)+")")
+        self.kb.asserta("character_action("+"player"+type+", "+str(Player.action.value)+")")
+        self.kb.asserta("character_xyd("+"player"+type+", "+str(Player.x) +", "+ str(Player.y) +", " + str(facing) + ")")
+        self.kb.asserta("character_speed("+"player"+type+", "+str(Player.speed_x)+ ", " + str(Player.speed_y) + ")")
+        self.kb.asserta("hit_area("+"player"+type+", "+str(Player.attack_data.current_hit_area.left)+ ", " + str(Player.attack_data.current_hit_area.right) + ", " + str(Player.attack_data.current_hit_area.top) + ", " + str(Player.attack_data.current_hit_area.bottom) + ")")
+        self.kb.asserta("character_attack("+"player"+type+", "+str(Player.attack_data.attack_type)+ ")")
+        self.kb.asserta("knockback" + "(" + "player"+type+", "+ str(knock_x)+ ", " + str(knock_y) +")")
+        self.kb.asserta("character_box("+"player"+type+", "+str(b1)+ ", " + str(b2) + ")")
+        self.kb.asserta("hit_conferm("+"player"+type+", "+str(hit_conferm)+")")
     
     def close(self):
         self.kb.close()
@@ -108,12 +116,23 @@ class KickAI_KB(AIInterface):
         if self.cc.get_skill_flag():
             self.key = self.cc.get_skill_key()
         else:
-            resolve = list(Kb.query("optimal_action(player1, player2, Action)"))
-            if resolve:
-                print(resolve)
             self.key.empty()
             self.cc.skill_cancel()
-            self.cc.command_call("B")
+            action = map_names["wait"]
+            resolve = list(Kb.query("optimal_action(player1, player2, Action)"))
+            if resolve:
+                #print(resolve)
+                action = map_names[resolve[0]["Action"]]
+                if action == "STAND_A":
+                    # Chance of doing martial change
+                    chance = random.randint(0,1)
+                    if chance == 0: # 50 (non uniformed, so i don't think this is the case)
+                        x = random.randint(0, len(martial)-1)
+                        action = martial[x]
+            self.cc.command_call(action)
+            #print(action)
+        #resolve = list(Kb.query("profile(optimal_action(Player1, Player2, Action))"))
+        #print(resolve)        
     
     def round_end(self, round_result: RoundResult):
         logger.info(f"round end: {round_result}")
