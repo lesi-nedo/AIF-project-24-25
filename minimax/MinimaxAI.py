@@ -10,9 +10,14 @@ from pyftg.models.round_result import RoundResult
 from pyftg.models.screen_data import ScreenData
 
 logger = logging.getLogger(__name__)
+logger.propagate = True
+
+def get_possible_actions(state): #TODO
+    return ["STAND", "FOR_JUMP", "DASH", "CROUCH", "STAND_D_DB_BA", "THROW_A", "THROW_B", "BACK_STEP"]
 
 class MinimaxAI(AIInterface):
     def __init__(self, depth=3):
+        self.game_data = None
         self.blind_flag = True
         self.depth = depth
         self.cc = None
@@ -25,8 +30,10 @@ class MinimaxAI(AIInterface):
 
     def initialize(self, game_data: GameData, player_number: bool):
         logger.info(f"Initializing for player {player_number}")
+        self.game_data = game_data
         self.cc = CommandCenter()
         self.key = Key()
+        self.frame_data = FrameData()
         self.player = player_number
         if self.player == 0:
             self.otherplayer = 1
@@ -42,8 +49,6 @@ class MinimaxAI(AIInterface):
     def get_information(self, frame_data: FrameData, is_control: bool):
         self.frame_data = frame_data
         self.cc.set_frame_data(self.frame_data, self.player)
-        self.mycharacter_data = self.frame_data.get_character(self.player)
-        self.othercharacter_data = self.frame_data.get_character(self.otherplayer)
 
     def get_screen_data(self, screen_data: ScreenData):
         self.screen_data = screen_data
@@ -64,32 +69,27 @@ class MinimaxAI(AIInterface):
         logger.info(f"round end: {round_result}")
 
     def processing(self):
-        """
-        Funzione principale di elaborazione dell'agente. Viene chiamata ogni frame.
-        """
-        if self.frame_data is not None and self.frame_data.current_frame > 0:
-            if self.cc.getskill_flag():
-                self.key = self.cc.command_call()
-                return
-
-            # Calcolo della mossa ottimale tramite Minimax
-            logger.info("Calculating optimal move using Minimax with alpha-beta pruning...")
+        if self.frame_data.empty_flag or self.frame_data.current_frame_number <= 0:
+            return
+        if self.cc.get_skill_flag():
+            self.key = self.cc.get_skill_key()
+            return
+        else:
             best_move = self.minimax_decision(self.frame_data, self.depth, -math.inf, math.inf, True)
             if best_move:
                 logger.info(f"Executing move: {best_move}")
+                self.key.empty()
+                self.cc.skill_cancel()
                 self.cc.command_call(best_move)
 
     def minimax_decision(self, state, depth, alpha, beta, maximizing_player):
-        """
-        Implementazione del Minimax con potatura Alpha-Beta.
-        """
         if depth == 0 or self.is_terminal(state):
             return self.evaluate(state)
 
         if maximizing_player:
             max_eval = -math.inf
             best_action = None
-            for action in self.get_possible_actions(state):
+            for action in get_possible_actions(state):
                 new_state = self.simulate_action(state, action)
                 eval = self.minimax_decision(new_state, depth - 1, alpha, beta, False)
                 if eval > max_eval:
@@ -101,7 +101,7 @@ class MinimaxAI(AIInterface):
             return best_action if depth == self.depth else max_eval
         else:
             min_eval = math.inf
-            for action in self.get_possible_actions(state):
+            for action in get_possible_actions(state):
                 new_state = self.simulate_action(state, action)
                 eval = self.minimax_decision(new_state, depth - 1, alpha, beta, True)
                 min_eval = min(min_eval, eval)
@@ -110,34 +110,76 @@ class MinimaxAI(AIInterface):
                     break
             return min_eval
 
-    def get_possible_actions(self, state):
+    def simulate_action(self, state: FrameData, action: str) -> FrameData:
         """
-        Restituisce una lista delle mosse possibili a partire dallo stato attuale.
+        Simula l'azione specificata eseguita dal giocatore corrente,
+        creando e aggiornando un nuovo stato di FrameData.
         """
-        return ["STAND", "FOR_JUMP", "DASH", "CROUCH", "STAND_D_DB_BA", "THROW_A", "THROW_B", "BACK_STEP"]
+        # Creare una copia simulata di FrameData
+        new_state = FrameData(
+            character_data=state.character_data.copy(),
+            current_frame_number=state.current_frame_number,
+            current_round=state.current_round,
+            projectile_data=state.projectile_data.copy(),
+            empty_flag=state.empty_flag,
+            front=state.front.copy(),
+        )
 
-    def simulate_action(self, state, action):
-        """
-        Simula lo stato risultante dopo aver eseguito un'azione.
-        """
-        new_state = state.copy()  # Simula una copia dello stato
-        new_state.player[self.player].execute_action(action)
+        # Ottieni il personaggio del giocatore corrente
+        my_character = new_state.get_character(self.player)
+        opponent_character = new_state.get_character(self.otherplayer)
+
+        # Simula l'applicazione dell'azione selezionata
+        if action == "STAND":
+            my_character.x += 0  # Nessun cambiamento alla posizione
+        elif action == "FOR_JUMP":
+            my_character.y += 10  # Simula il movimento verso l'alto
+        elif action == "DASH":
+            my_character.x += 5  # Simula un dashing in avanti
+        elif action == "CROUCH":
+            my_character.y = 0  # Usa zero per simulare un abbassamento
+        # Aggiungere altre azioni
+        elif action == "STAND_D_DB_BA":
+            my_character.energy -= 10  # Simula dispendio di energia
+        elif action == "THROW_A":
+            opponent_character.hp -= 5  # Infligge danno alla salute
+        elif action == "THROW_B":
+            opponent_character.hp -= 10  # Infligge più danno alla salute
+        elif action == "BACK_STEP":
+            my_character.x -= 5  # Simula passo indietro
+
+        # Aggiorna i dati del personaggio nel nuovo stato
+        new_state.character_data[self.player] = my_character
+        new_state.character_data[self.otherplayer] = opponent_character
+
         return new_state
 
-    def evaluate(self, state):
-        """
-        Funzione di valutazione che assegna un punteggio allo stato in base al vantaggio.
-        """
-        my_hp = state.player[self.player].hp
-        opponent_hp = state.player[self.otherplayer].hp
-        my_position = state.player[self.player].position.x
-        opponent_position = state.player[self.otherplayer].position.x
+    def evaluate(self, state: FrameData) -> float:
+        my_character = state.get_character(self.player)
+        opponent_character = state.get_character(self.otherplayer)
 
-        # Peso derivato dalla salute e dalla distanza dall'avversario
-        return (my_hp - opponent_hp) + (abs(my_position - opponent_position) * -0.1)
+        # Controlla se i dati dei personaggi sono validi
+        if not my_character or not opponent_character:
+            logger.warning("Dati dei personaggi non validi.")
+            return -math.inf
+
+        # Ottenere attributi importanti
+        my_hp = my_character.hp
+        opponent_hp = opponent_character.hp
+        my_x = my_character.x
+        opponent_x = opponent_character.x
+        distance = abs(my_x - opponent_x)  # Calcola la distanza tra i giocatori
+
+        # Componenti del punteggio
+        hp_diff = my_hp - opponent_hp  # La differenza di salute
+        proximity_bonus = -distance * 0.1  # Penalità basata sulla distanza (più vicino è meglio)
+        energy_bonus = my_character.energy * 0.05  # Aggiungi un peso per l'energia del giocatore
+
+        # Somma dei punteggi
+        score = hp_diff + proximity_bonus + energy_bonus
+        return score
 
     def is_terminal(self, state):
-        """
-        Verifica se lo stato è terminale (partita finita).
-        """
-        return state.player[self.player].hp <= 0 or state.player[self.otherplayer].hp <= 0
+        my_character = state.get_character(self.player)
+        opponent_character = state.get_character(self.otherplayer)
+        return my_character.hp <= 0 or opponent_character.hp <= 0
