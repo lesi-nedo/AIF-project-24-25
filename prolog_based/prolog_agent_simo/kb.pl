@@ -3,7 +3,6 @@
 % character_xyd(Player, X, Y, D)
 % character_speed(Player, X_v, Y_v)
 % character_hp_energy(Player, Hp, Energy)
-% hit_area(PlayerNumber, Left, Right, Top, Bottom)
 % hit_conferm(Player, Bool)
 % character_attack(Player, AttackID)
 % knockback(Player, X_m, Y_m)
@@ -64,17 +63,15 @@ boud_hp_strategy(15)
 :- dynamic character_state/2.
 :- dynamic character_action/2.
 :- dynamic hit_conferm/2.
-:- dynamic hit_area/5.
 
 
 was_hostile(Player, ID) :- character_attack(Player, AttackID), AttackID \= 0, ID = AttackID.
 player_was_moving(Player) :- character_speed(Player, X_v, Y_v), (X_v \=0; Y_v \=0).
 player_predict_next_position(Player, FX, FY, FD) :- frame_scaling_factor(F), knockback(Player, X_m, Y_m), character_xyd(Player, X, Y, D), character_speed(Player, X_v, Y_v), FX is X + (X_v + X_m) * D * F, FY is Y + (Y_v + Y_m) * D * F, FD is D.
-player_predict_distance(Player1, Player2, D) :- player_predict_next_position(Player1, FX1, FY1, FD1), player_predict_next_position(Player2, FX2, FY2, FD2), D = sqrt((FX1 - FX2) ** 2 + (FY1 - FY2) ** 2), Player1 \= Player2.
-player_predict_hitbox(Player, L, R, T, B) :- character_box(Player, W, H), player_predict_next_position(Player, FX, FY, FD), L = FX, R = FX + W, T = FY, B = FY + H.
+player_predict_distance(Player1, Player2, D) :- player_predict_next_position(Player1, FX1, FY1, _), player_predict_next_position(Player2, FX2, FY2, _), D = sqrt((FX1 - FX2) ** 2 + (FY1 - FY2) ** 2), Player1 \= Player2.
+player_predict_hitbox(Player, L, R, T, B) :- character_box(Player, W, H), player_predict_next_position(Player, FX, FY, _), L = FX, R = FX + W, T = FY, B = FY + H.
 hitbox_will_intersect(Player1, Player2) :- player_predict_hitbox(Player1, L1, R1, T1, B1), player_predict_hitbox(Player2, L2, R2, T2, B2), (R1 > L2, L1 < R2, B1 > T2, T1 < B2).
-%% opponent_sure_hit_me(Player1, Player2) :- hostile(Player2), hit_area(Player2, L, R, T, B), player_next_frame(Player1, X, Y), X >= L, X =< R, Y >= T, Y =< B.
-player_can_defense(Player1, Player2) :- character_state(Player1, State), (State = stand; State = crouch).
+player_can_defense(Player1, _) :- character_state(Player1, State), (State = stand; State = crouch).
 player_can_attack(Player1, Player2) :- player_can_defense(Player1, Player2).
 player_is_safe(Player1, Player2, LD) :- over_safe_distance(L), player_predict_distance(Player1, Player2, D), (D >= L), LD = D.
 can_shot_projectile(Player1, Player2) :- player_is_safe(Player1, Player2, LD), bound_projectile(B), (LD >= B).
@@ -87,9 +84,9 @@ should_use_projectile(Player1, Player2, AttackID) :- can_shot_projectile(Player1
 should_use_martial(Player1, Player2, AttackID) :- can_hit_martial(Player1, Player2), skill_energy_cost(AttackID, Cost), character_hp_energy(Player1, _, Energy), Energy >= Cost, (AttackID = stand_medium_punch; AttackID = stand_medium_kick).
 should_evade_or_block(Player1, Player2) :- bound_projectile(B), was_hostile(Player2, ID), (ID = fireball), player_predict_distance(Player1, Player2, Distance), Distance > B, player_can_defense(Player1, Player2).
 should_ultra(Player1) :- skill_energy_cost(ultra, Cost), character_hp_energy(Player1, _, Energy), (Energy >= Cost).
-optimal_action(Player1, Player2, Action) :- should_ultra(Player1), !, Action = ultra.
+optimal_action(Player1, _, Action) :- should_ultra(Player1), !, Action = ultra.
 optimal_action(Player1, Player2, Action) :- should_use_martial(Player1, Player2, AttackID), !, Action = AttackID.
 optimal_action(Player1, Player2, Action) :- should_use_projectile(Player1, Player2, AttackID),  !, Action = AttackID.
 optimal_action(Player1, Player2, Action) :- should_defend(Player1, Player2), !, Action = defend.
 optimal_action(Player1, Player2, Action) :- should_evade_or_block(Player1, Player2), !, Action = evade.
-optimal_action(Player1, Player2, Action) :- !, Action = wait.
+optimal_action(_, _, Action) :- !, Action = wait.

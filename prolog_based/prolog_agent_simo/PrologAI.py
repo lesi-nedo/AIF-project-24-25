@@ -1,6 +1,5 @@
 import logging
 import random
-import numpy as np
 
 from utility import Utility
 from pyswip import Prolog
@@ -22,7 +21,6 @@ class KB():
     def query(self, q):
         return self.kb.query(q)
     def retract_frame_info(self):
-        # Supporting Data Predicates
         self.kb.retractall("character_attack(_, _)")
         self.kb.retractall("character_speed(_, _, _)")
         self.kb.retractall("knocself.kback(_, _, _)")
@@ -31,7 +29,6 @@ class KB():
         self.kb.retractall("hp_threshold(_, _)")
         self.kb.retractall("character_hp_energy(_, _, _)")
         self.kb.retractall("character_state(_, _)")
-        self.kb.retractall("hit_area(_, _, _, _, _)")
         self.kb.retractall("knockback(_, _, _)")
         self.kb.retractall("hit_conferm(_, _)")
         self.kb.retractall("character_action(_, _)")
@@ -42,19 +39,11 @@ class KB():
         hit_conferm = 0 if h_conferm == False else 1
         if Player.front:
             facing = 1
-        #logger.info("character_state("+"player"+type+", "+str(Player.state._value_)+")")
-        #logger.info("character_action("+"player"+type+", "+str(Player.action.value)+")")
-        #logger.info("character_xyd("+"player"+type+", "+str(Player.x) +", "+ str(Player.y) +"," + str(facing) + ")")
-        #logger.info("character_speed("+"player"+type+", "+str(Player.speed_x)+ ", " + str(Player.speed_y) + ")")
-        #logger.info("hit_area("+"player"+type+", "+str(Player.attack_data.current_hit_area.left)+ ", " + str(Player.attack_data.current_hit_area.right) + ", " + str(Player.attack_data.current_hit_area.top) + ", " + str(Player.attack_data.current_hit_area.bottom) + ")")
-        #logger.info("character_attack("+"player"+type+", "+str(Player.attack_data.start_up)+ ", " + str(Player.attack_data.is_live).lower() + ", " + str(Player.attack_data.speed_x) + ", " + str(Player.attack_data.speed_y) +", " + str(Player.attack_data.is_projectile).lower() + ")")
-        #logger.info("knockback" + "(" + "player"+type+", "+ str(knock_x)+ ", " + str(knock_y) +")")
         self.kb.asserta("character_hp_energy("+"player"+type+", "+str(Player.hp)+ ", " + str(Player.energy)+ ")")
         self.kb.asserta("character_state("+"player"+type+", "+str(Player.state._value_)+")")
         self.kb.asserta("character_action("+"player"+type+", "+str(Player.action.value)+")")
         self.kb.asserta("character_xyd("+"player"+type+", "+str(Player.x) +", "+ str(Player.y) +", " + str(facing) + ")")
         self.kb.asserta("character_speed("+"player"+type+", "+str(Player.speed_x)+ ", " + str(Player.speed_y) + ")")
-        self.kb.asserta("hit_area("+"player"+type+", "+str(Player.attack_data.current_hit_area.left)+ ", " + str(Player.attack_data.current_hit_area.right) + ", " + str(Player.attack_data.current_hit_area.top) + ", " + str(Player.attack_data.current_hit_area.bottom) + ")")
         self.kb.asserta("character_attack("+"player"+type+", "+str(Player.attack_data.attack_type)+ ")")
         self.kb.asserta("knockback" + "(" + "player"+type+", "+ str(knock_x)+ ", " + str(knock_y) +")")
         self.kb.asserta("character_box("+"player"+type+", "+str(b1)+ ", " + str(b2) + ")")
@@ -116,12 +105,9 @@ class PrologAI(AIInterface):
         if self.cc.get_skill_flag():
             self.key = self.cc.get_skill_key()
         else:
-            self.key.empty()
-            self.cc.skill_cancel()
             action = map_names["wait"]
             resolve = list(Kb.query("optimal_action(player1, player2, Action)"))
             if resolve:
-                #print(resolve)
                 action = map_names[resolve[0]["Action"]]
                 if action == "STAND_A":
                     # Chance of doing martial change
@@ -129,10 +115,7 @@ class PrologAI(AIInterface):
                     if chance >= 3: # ~66% (non uniformed, so i don't think this is the case)
                         x = random.randint(0, len(martial)-1)
                         action = martial[x]
-            self.cc.command_call(action)
-            #print(action)
-        #resolve = list(Kb.query("profile(optimal_action(Player1, Player2, Action))"))
-        #print(resolve)        
+            self.cc.command_call(action)     
     
     def round_end(self, round_result: RoundResult):
         logger.info(f"round end: {round_result}")

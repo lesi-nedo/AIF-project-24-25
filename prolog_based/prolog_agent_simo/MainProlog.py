@@ -4,7 +4,7 @@ import typer
 
 from typing_extensions import Annotated, Optional
 
-from KickAI_KB import KickAI_KB
+from PrologAI import *
 from pyftg.socket.aio.gateway import Gateway
 from pyftg.utils.logging import DEBUG, set_logging
 
@@ -18,7 +18,7 @@ async def start_process(
 ):
 
     gateway = Gateway(host, port)
-    agent2 = KickAI_KB()
+    agent2 = PrologAI()
     gateway.register_ai("KickAI_KB", agent2)
     await gateway.run_game(
         [character, character], ["Keyboard", "KickAI_KB"], game_num
