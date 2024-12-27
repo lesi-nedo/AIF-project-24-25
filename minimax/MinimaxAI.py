@@ -8,15 +8,14 @@ from pyftg.models.game_data import GameData
 from pyftg.models.key import Key
 from pyftg.models.round_result import RoundResult
 from pyftg.models.screen_data import ScreenData
+from pyftg.models.enums.action import Action
 
 logger = logging.getLogger(__name__)
 logger.propagate = True
 
-def get_possible_actions(state): #TODO
-    return ["STAND", "FOR_JUMP", "DASH", "CROUCH", "STAND_D_DB_BA", "THROW_A", "THROW_B", "BACK_STEP"]
-
 class MinimaxAI(AIInterface):
     def __init__(self, depth=3):
+        self.action = None
         self.otherplayer = None
         self.audio_data = None
         self.screen_data = None
@@ -92,19 +91,19 @@ class MinimaxAI(AIInterface):
         if maximizing_player:
             max_eval = -math.inf
             best_action = None
-            for action in get_possible_actions(state):
+            for action in Action:
                 new_state = self.simulate_action(state, action)
                 eval = self.minimax_decision(new_state, depth - 1, alpha, beta, False)
                 if eval > max_eval:
                     max_eval = eval
-                    best_action = action
+                    best_action = action.value
                 alpha = max(alpha, eval)
                 if beta <= alpha:
                     break
             return best_action if depth == self.depth else max_eval
         else:
             min_eval = math.inf
-            for action in get_possible_actions(state):
+            for action in Action:
                 new_state = self.simulate_action(state, action)
                 eval = self.minimax_decision(new_state, depth - 1, alpha, beta, True)
                 min_eval = min(min_eval, eval)
@@ -113,7 +112,7 @@ class MinimaxAI(AIInterface):
                     break
             return min_eval
 
-    def simulate_action(self, state: FrameData, action: str) -> FrameData:
+    def simulate_action(self, state: FrameData, action) -> FrameData:
         # Creare una copia simulata di FrameData
         new_state = FrameData(
             character_data=state.character_data.copy(),
@@ -129,22 +128,22 @@ class MinimaxAI(AIInterface):
         opponent_character = new_state.get_character(self.otherplayer)
 
         # Simula l'applicazione dell'azione selezionata
-        if action == "STAND":
+        if action.name == "STAND":
             my_character.x += 0  # Nessun cambiamento alla posizione
-        elif action == "FOR_JUMP":
+        elif action.name == "FOR_JUMP":
             my_character.y += 10  # Simula il movimento verso l'alto
-        elif action == "DASH":
+        elif action.name == "DASH":
             my_character.x += 5  # Simula un dashing in avanti
-        elif action == "CROUCH":
+        elif action.name == "CROUCH":
             my_character.y = 0  # Usa zero per simulare un abbassamento
         # Aggiungere altre azioni
-        elif action == "STAND_D_DB_BA":
+        elif action.name == "STAND_D_DB_BA":
             my_character.energy -= 10  # Simula dispendio di energia
-        elif action == "THROW_A":
+        elif action.name == "THROW_A":
             opponent_character.hp -= 5  # Infligge danno alla salute
-        elif action == "THROW_B":
+        elif action.name == "THROW_B":
             opponent_character.hp -= 10  # Infligge più danno alla salute
-        elif action == "BACK_STEP":
+        elif action.name == "BACK_STEP":
             my_character.x -= 5  # Simula passo indietro
 
         # Aggiorna i dati del personaggio nel nuovo stato
