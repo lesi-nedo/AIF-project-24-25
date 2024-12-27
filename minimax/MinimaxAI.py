@@ -17,6 +17,9 @@ def get_possible_actions(state): #TODO
 
 class MinimaxAI(AIInterface):
     def __init__(self, depth=3):
+        self.otherplayer = None
+        self.audio_data = None
+        self.screen_data = None
         self.game_data = None
         self.blind_flag = True
         self.depth = depth
@@ -111,10 +114,6 @@ class MinimaxAI(AIInterface):
             return min_eval
 
     def simulate_action(self, state: FrameData, action: str) -> FrameData:
-        """
-        Simula l'azione specificata eseguita dal giocatore corrente,
-        creando e aggiornando un nuovo stato di FrameData.
-        """
         # Creare una copia simulata di FrameData
         new_state = FrameData(
             character_data=state.character_data.copy(),
@@ -158,26 +157,14 @@ class MinimaxAI(AIInterface):
         my_character = state.get_character(self.player)
         opponent_character = state.get_character(self.otherplayer)
 
-        # Controlla se i dati dei personaggi sono validi
         if not my_character or not opponent_character:
             logger.warning("Dati dei personaggi non validi.")
             return -math.inf
 
-        # Ottenere attributi importanti
         my_hp = my_character.hp
         opponent_hp = opponent_character.hp
-        my_x = my_character.x
-        opponent_x = opponent_character.x
-        distance = abs(my_x - opponent_x)  # Calcola la distanza tra i giocatori
 
-        # Componenti del punteggio
-        hp_diff = my_hp - opponent_hp  # La differenza di salute
-        proximity_bonus = -distance * 0.1  # Penalità basata sulla distanza (più vicino è meglio)
-        energy_bonus = my_character.energy * 0.05  # Aggiungi un peso per l'energia del giocatore
-
-        # Somma dei punteggi
-        score = hp_diff + proximity_bonus + energy_bonus
-        return score
+        return  my_hp - opponent_hp
 
     def is_terminal(self, state):
         my_character = state.get_character(self.player)
