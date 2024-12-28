@@ -96,7 +96,7 @@ class MinimaxAI(AIInterface):
                 eval = self.minimax_decision(new_state, depth - 1, alpha, beta, False)
                 if eval > max_eval:
                     max_eval = eval
-                    best_action = action.value
+                    best_action = action.name
                 alpha = max(alpha, eval)
                 if beta <= alpha:
                     break
@@ -122,48 +122,23 @@ class MinimaxAI(AIInterface):
             empty_flag=state.empty_flag,
             front=state.front.copy(),
         )
-
-        # Ottieni il personaggio del giocatore corrente
-        my_character = new_state.get_character(self.player)
-        opponent_character = new_state.get_character(self.otherplayer)
-
-        # Simula l'applicazione dell'azione selezionata
-        if action.name == "STAND":
-            my_character.x += 0  # Nessun cambiamento alla posizione
-        elif action.name == "FOR_JUMP":
-            my_character.y += 10  # Simula il movimento verso l'alto
-        elif action.name == "DASH":
-            my_character.x += 5  # Simula un dashing in avanti
-        elif action.name == "CROUCH":
-            my_character.y = 0  # Usa zero per simulare un abbassamento
-        # Aggiungere altre azioni
-        elif action.name == "STAND_D_DB_BA":
-            my_character.energy -= 10  # Simula dispendio di energia
-        elif action.name == "THROW_A":
-            opponent_character.hp -= 5  # Infligge danno alla salute
-        elif action.name == "THROW_B":
-            opponent_character.hp -= 10  # Infligge più danno alla salute
-        elif action.name == "BACK_STEP":
-            my_character.x -= 5  # Simula passo indietro
-
-        # Aggiorna i dati del personaggio nel nuovo stato
-        new_state.character_data[self.player] = my_character
-        new_state.character_data[self.otherplayer] = opponent_character
+        if action == Action.FORWARD_WALK:
+             new_state.character_data[0].hp -= 5
+        else:
+             return state
 
         return new_state
 
     def evaluate(self, state: FrameData) -> float:
         my_character = state.get_character(self.player)
         opponent_character = state.get_character(self.otherplayer)
-
         if not my_character or not opponent_character:
             logger.warning("Dati dei personaggi non validi.")
             return -math.inf
 
         my_hp = my_character.hp
         opponent_hp = opponent_character.hp
-
-        return  my_hp - opponent_hp
+        return my_hp - opponent_hp
 
     def is_terminal(self, state):
         my_character = state.get_character(self.player)
