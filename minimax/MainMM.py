@@ -9,15 +9,16 @@ from minimax.MinimaxAI import MinimaxAI
 
 app = typer.Typer(pretty_exceptions_enable=False)
 
+character = "ZEN"
 
 async def start_process(
         host: str,
         port: int,
-        character: str = "ZEN",
+        character: str = character,
         game_num: int = 1,
 ):
     gateway = Gateway(host, port)
-    agent2 = MinimaxAI()
+    agent2 = MinimaxAI(depth=5, character=character)
     gateway.register_ai("MinimaxAI", agent2)
     await gateway.run_game(
         [character, character], ["Keyboard", "MinimaxAI"], game_num

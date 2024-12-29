@@ -1,5 +1,9 @@
 import logging
 import math
+import os
+
+import numpy
+import pandas
 from pyftg import AIInterface
 from pyftg.aiinterface.command_center import CommandCenter
 from pyftg.models.audio_data import AudioData
@@ -14,7 +18,7 @@ logger = logging.getLogger(__name__)
 logger.propagate = True
 
 class MinimaxAI(AIInterface):
-    def __init__(self, depth=3):
+    def __init__(self, depth=3, character="ZEN"):
         self.action = None
         self.otherplayer = None
         self.audio_data = None
@@ -26,7 +30,9 @@ class MinimaxAI(AIInterface):
         self.key = None
         self.frame_data = None
         self.player = None
-
+        self.motions = None
+        self.character = character
+        self.time = 0
     def name(self) -> str:
         return self.__class__.__name__
 
@@ -41,6 +47,8 @@ class MinimaxAI(AIInterface):
             self.otherplayer = 1
         else:
             self.otherplayer = 0
+        self.motions = pandas.read_csv("DareFightingICE-7.0beta/data/characters/ZEN/Motion.csv")
+        self.motions.set_index("motionName", inplace = True)
 
     def get_non_delay_frame_data(self, frame_data: FrameData):
         self.frame_data = frame_data
@@ -81,7 +89,7 @@ class MinimaxAI(AIInterface):
             if best_move:
                 logger.info(f"Executing move: {best_move}")
                 self.key.empty()
-                self.cc.skill_cancel()
+                #self.cc.skill_cancel()
                 self.cc.command_call(best_move)
 
     def minimax_decision(self, state, depth, alpha, beta, maximizing_player):
@@ -122,10 +130,9 @@ class MinimaxAI(AIInterface):
             empty_flag=state.empty_flag,
             front=state.front.copy(),
         )
-        if action == Action.FORWARD_WALK:
-             new_state.character_data[0].hp -= 5
-        else:
-             return state
+        if new_state.character_data[0].energy + self.motions.loc[action.name, "attack.StartAddEnergy"] >= 0:
+            if new_state.character_data[0].state.name == self.motions.loc[action.name, "state"]:
+                new_state.character_data[0].hp -= self.motions.loc[action.name, "attack.HitDamage"]
 
         return new_state
 
@@ -135,10 +142,12 @@ class MinimaxAI(AIInterface):
         if not my_character or not opponent_character:
             logger.warning("Dati dei personaggi non validi.")
             return -math.inf
-
+        distance = abs(
+            state.get_character(self.player).x - state.get_character(self.otherplayer).x
+        )
         my_hp = my_character.hp
         opponent_hp = opponent_character.hp
-        return my_hp - opponent_hp
+        return my_hp - opponent_hp - distance * 0.1
 
     def is_terminal(self, state):
         my_character = state.get_character(self.player)
