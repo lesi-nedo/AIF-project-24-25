@@ -100,7 +100,7 @@ class MinimaxAI(AIInterface):
             max_eval = -math.inf
             best_action = None
             for action in Action:
-                new_state = self.simulate_action(state, action)
+                new_state = self.simulate_action(state, action, False)
                 eval = self.minimax_decision(new_state, depth - 1, alpha, beta, False)
                 if eval > max_eval:
                     max_eval = eval
@@ -112,7 +112,7 @@ class MinimaxAI(AIInterface):
         else:
             min_eval = math.inf
             for action in Action:
-                new_state = self.simulate_action(state, action)
+                new_state = self.simulate_action(state, action, True)
                 eval = self.minimax_decision(new_state, depth - 1, alpha, beta, True)
                 min_eval = min(min_eval, eval)
                 beta = min(beta, eval)
@@ -120,7 +120,7 @@ class MinimaxAI(AIInterface):
                     break
             return min_eval
 
-    def simulate_action(self, state: FrameData, action) -> FrameData:
+    def simulate_action(self, state: FrameData, action, player: bool) -> FrameData:
         # Creare una copia simulata di FrameData
         new_state = FrameData(
             character_data=state.character_data.copy(),
@@ -130,10 +130,20 @@ class MinimaxAI(AIInterface):
             empty_flag=state.empty_flag,
             front=state.front.copy(),
         )
-        if new_state.character_data[0].energy + self.motions.loc[action.name, "attack.StartAddEnergy"] >= 0:
-            if new_state.character_data[0].state.name == self.motions.loc[action.name, "state"]:
-                new_state.character_data[0].hp -= self.motions.loc[action.name, "attack.HitDamage"]
+        curr = new_state.get_character(player)
+        opp = new_state.get_character(~player)
+        curr_box = ((curr.x + self.motions.loc[action.name, "hitAreaLeft"], curr.y - self.motions.loc[action.name, "hitAreaDown"]), (curr.x - self.motions.loc[action.name, "hitAreaRight"], curr.y + self.motions.loc[action.name, "hitAreaUp"]))
+        opp_box = ((opp.x + self.motions.loc[action.name, "hitAreaLeft"], opp.y - self.motions.loc[action.name, "hitAreaDown"]), (opp.x - self.motions.loc[action.name, "hitAreaRight"], opp.y + self.motions.loc[action.name, "hitAreaUp"]))
+        curr_atk_box = (
+        (curr.x + self.motions.loc[action.name, "hitAreaLeft"], curr.y - self.motions.loc[action.name, "hitAreaDown"]),
+        (curr.x - self.motions.loc[action.name, "hitAreaRight"], curr.y + self.motions.loc[action.name, "hitAreaUp"]))
+        if curr.energy + self.motions.loc[action.name, "attack.StartAddEnergy"] >= 0:
+            if curr.state.name == self.motions.loc[action.name, "state"]:
+                #my_box = ((), curr.y - self.motions.loc[action.name]),())
+                opp.hp -= self.motions.loc[action.name, "attack.HitDamage"]
 
+        new_state.character_data[0 if player else 1] = curr
+        new_state.character_data[0 if ~player else 1] = opp
         return new_state
 
     def evaluate(self, state: FrameData) -> float:
