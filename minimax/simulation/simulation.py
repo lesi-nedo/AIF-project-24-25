@@ -1,14 +1,6 @@
-from logging import currentframe
-from turtledemo.paint import switchupdown
-
-from pyftg.aiinterface.command_center import CommandCenter
-from pyftg.models.audio_data import AudioData
 from pyftg.models.frame_data import FrameData
-from pyftg.models.game_data import GameData
-from pyftg.models.key import Key
-from pyftg.models.round_result import RoundResult
-from pyftg.models.screen_data import ScreenData
 from pyftg.models.enums.action import Action
+import pandas as pandas
 
 from collections import deque
 
@@ -19,8 +11,9 @@ def load_motions(char_name):
     return motions[char_name]
 
 class Simulator:
-    def __init__(self, frame_data: FrameData, p1: str, p2:str = p1, action_list: (deque, deque), player_number: bool):
+    def __init__(self, frame_data: FrameData, action_list: (deque, deque), player_number: bool, p1:str = 'ZEN', p2:str = 'ZEN'):
         self.frame_data = frame_data
+        self.motions = []
         self.motions[0] = load_motions(p1)
         self.motions[1] = load_motions(p2)
         self.action_list = action_list
@@ -33,14 +26,14 @@ class Simulator:
     def ableAction(self, ch, action: Action):
         nextMotion = self.motions[ch, action.name]
         currMotion = self.motions[ch, self.characters[ch].action.name]
-        if self.characters[ch].energy < -motion["attack.StartAddEnergy"]:
+        if self.characters[ch].energy < -nextMotion["attack.StartAddEnergy"]:
             return False
         elif self.characyers[ch].control:
             return True
         else:
             checkframe = currMotion["cancellableFrame"] <= currMotion["frameNumber"] - self.character[ch].remainingFrame
             checkAction = currMotion["cancellableMotionLevel"] >= nextMotion["motionLevel"]
-            return checkframe && checkAction
+            return checkframe & checkAction
 
     def runAction(self, ch, action: Action):
         motion = self.motions[ch, Action.name]
