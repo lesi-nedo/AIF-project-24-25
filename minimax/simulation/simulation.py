@@ -12,31 +12,63 @@ from pyftg.models.enums.action import Action
 
 from collections import deque
 
+motions = {}
+def load_motions(char_name):
+    if motions[char_name] is  None:
+        motions[char_name] = pandas.read_csv(f'.DareFightingICE-7.0beta/data/characters/{char_name}/Motion.csv')
+    return motions[char_name]
 
 class Simulator:
-    def __init__(self, frame_data: FrameData, motion_list: (list, list), action_list: (list, list), player_number: bool):
+    def __init__(self, frame_data: FrameData, p1: str, p2:str = p1, action_list: (deque, deque), player_number: bool):
         self.frame_data = frame_data
-        self.motion_list = motion_list
+        self.motions[0] = load_motions(p1)
+        self.motions[1] = load_motions(p2)
         self.action_list = action_list
         self.player_number = player_number
 
         self.characters = self.frame_data.character_data.copy()
         self.proj = self.frame_data.projectile_data.copy()
 
+
+    def ableAction(self, ch, action: Action):
+        nextMotion = self.motions[ch, action.name]
+        currMotion = self.motions[ch, self.characters[ch].action.name]
+        if self.characters[ch].energy < -motion["attack.StartAddEnergy"]:
+            return False
+        elif self.characyers[ch].control:
+            return True
+        else:
+            checkframe = currMotion["cancellableFrame"] <= currMotion["frameNumber"] - self.character[ch].remainingFrame
+            checkAction = currMotion["cancellableMotionLevel"] >= nextMotion["motionLevel"]
+            return checkframe && checkAction
+
+    def runAction(self, ch, action: Action):
+        motion = self.motions[ch, Action.name]
+        if self.characters[ch].action is None:
+            self.characters[ch].remaining_frame = motion["frameNumber"]
+            self.characters[ch].energy += motion["attack.StartAddEnergy"]
+        self.characters[ch].action = action
+        self.characters[ch].state = motion["state"]
+        if motion["speedX"] is not 0:
+            self.characters[ch].speed_x = motions["speedX"] if self.characters[ch].front else -motion["speedX"]
+        self.characters[ch].speed_y = motion["speedY"]
+        self.characters[ch].control = motion["control"]
+
     def detectHit(self, oppInd: int, attack):
         pass
 
     def hitPlayer(self, oppInd, attInd, attack, currentFrame):
-        self.proj = self.proj
+        pass
 
-    def processFight(self, currentFrame: int):
-        self.processingCommands()
+    def processFight(self, currentFrame: int = 0):
+        self.processingCommands(currentFrame)
         self.processingHit(currentFrame)
         self.updateAttackParameters(currentFrame)
-        self.updateCharacters()
+        self.updateCharacters(currentFrame)
 
     def processingCommands(self):
-        self.proj = self.proj
+        for i in range(1,2):
+            self.characters[i].action =
 
     def processingHit(self, currentFrame: int):
         isHit = [False, False]
