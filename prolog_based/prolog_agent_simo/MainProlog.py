@@ -19,9 +19,9 @@ async def start_process(
 
     gateway = Gateway(host, port)
     agent2 = PrologAI()
-    gateway.register_ai("KickAI_KB", agent2)
+    gateway.register_ai("PrologAI", agent2)
     await gateway.run_game(
-        [character, character], ["Keyboard", "KickAI_KB"], game_num
+        [character, character], ["Keyboard", "PrologAI"], game_num
     )
       
 
