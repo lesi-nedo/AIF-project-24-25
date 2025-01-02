@@ -3,8 +3,6 @@ from pyftg.models.frame_data import FrameData
 from pyftg.models.enums.action import Action
 import pandas as pandas
 
-from collections import deque
-
 motions = []
 def load_motions(char_name, i):
     if motions[i] is None:
@@ -13,16 +11,16 @@ def load_motions(char_name, i):
     return motions[i]
 
 class Simulator:
-    def __init__(self, frame_data: FrameData, action_list: (deque, deque), player_number: bool, p1:str = 'ZEN', p2:str = 'ZEN'):
-        self.frame_data = frame_data
+    def __init__(self, p1:str = 'ZEN', p2:str = 'ZEN'):
+        self.current_frame = None
+        self.playing_action = None
+        self.playing_character = None
+        self.frame_data = None
         self.motions = []
         self.motions[0] = load_motions(p1, 0)
         self.motions[1] = load_motions(p2, 1)
-        self.action_list = action_list
-        self.player_number = player_number
 
-        self.characters = self.frame_data.character_data.copy()
-        self.proj = self.frame_data.projectile_data.copy()
+        self.characters = None
 
 
     # def ableAction(self, ch, action: Action):
@@ -142,17 +140,30 @@ class Simulator:
                         self.characters[1-oppInd].remaining_frame = self.motions[1-oppInd].loc[Action.CHANGE_DOWN.name, "frameNumber"]
 
 
-    def process_fight(self, currentFrame: int = 0):
+    def process_fight(self, frame_data: FrameData, action: Action, ch: int):
+        self.frame_data = frame_data
+        self.characters = self.frame_data.character_data.copy()
+        self.current_frame = self.frame_data.current_frame_number
+        self.playing_character = ch
+        self.playing_action = action
         self.processing_commands()
-        self.processing_hit(currentFrame)
-        self.update_attack_parameters(currentFrame)
+        self.processing_hit()
+        self.update_attack_parameters()
         self.update_characters()
+        
+        return FrameData(
+            character_data=self.characters,
+            current_frame_number=self.frame_data.current_frame_number + 1,
+            current_round=self.frame_data.current_round,
+            projectile_data=self.frame_data.projectile_data.copy(),
+            empty_flag=self.frame_data.empty_flag,
+            front=self.frame_data.front.copy(),
+        )
 
     def processing_commands(self):
-        for i in range(0,2):
-            self.run_action(i, self.action_list.deque())
+            self.run_action(self.playing_character, self.playing_action)
 
-    def processing_hit(self, currentFrame: int):
+    def processing_hit(self):
         is_hit = [False, False]
 
         # for p in self.proj:
@@ -165,25 +176,25 @@ class Simulator:
 
         for i in range(0,2):
             opp_ind = 1 - i
-            attack = self.characters[i].attack_data
+            attack = self.characters[i].action
             if self.detect_hit(opp_ind, attack):
                 is_hit[opp_ind] = True
-                self.hit_player(opp_ind, self.characters[i].action, currentFrame)
+                self.hit_player(opp_ind, self.characters[i].action, self.current_frame)
 
-    def update_attack_parameters(self, currentFrame: int):
-        for p in self.proj:
-            p.active += 1
-            if not p.active < currentFrame:
-                self.proj.remove(p)
-            else:
-                p.current_hit_area.left += p.speed_x
-                p.current_hit_area.right+= p.speed_x
-                p.current_hit_area.top += p.speed_y
-                p.current_hit_area.bottom += p.speed_y
+    def update_attack_parameters(self):
+        #for p in self.proj:
+        #    p.active += 1
+        #    if not p.active < currentFrame:
+        #        self.proj.remove(p)
+        #    else:
+        #        p.current_hit_area.left += p.speed_x
+        #        p.current_hit_area.right+= p.speed_x
+        #        p.current_hit_area.top += p.speed_y
+        #        p.current_hit_area.bottom += p.speed_y
 
         for i in range(0,2):
-            currentFrame += 1
-            if currentFrame <= self.motions[i].loc [self.characters[i].action.name, "attack.Active"]:
+            self.current_frame += 1
+            if self.current_frame <= self.motions[i].loc [self.characters[i].action.name, "attack.Active"]:
                 self.characters[i].action = None
 
     def update_characters(self):
