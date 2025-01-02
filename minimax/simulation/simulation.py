@@ -4,7 +4,7 @@ from pyftg.models.enums.action import Action
 import pandas as pandas
 
 def load_motions(char_name):
-    motions = pandas.read_csv(f'.DareFightingICE-7.0beta/data/characters/{char_name}/Motion.csv')
+    motions = pandas.read_csv(f'DareFightingICE-7.0beta/data/characters/{char_name}/Motion.csv')
     motions = motions.set_index("motionName")
     return motions
 
@@ -14,9 +14,9 @@ class Simulator:
         self.playing_action = None
         self.playing_character = None
         self.frame_data = None
-        self.motions = []
-        self.motions[0] = load_motions(p1, 0)
-        self.motions[1] = load_motions(p2, 1)
+        self.motions = [None, None]
+        self.motions[0] = load_motions(p1)
+        self.motions[1] = load_motions(p2)
 
         self.characters = None
 
@@ -39,7 +39,7 @@ class Simulator:
             self.characters[ch].energy += self.motions[ch].loc[action.name, "attack.StartAddEnergy"]
         self.characters[ch].action = action
         self.characters[ch].state = self.motions[ch].loc[action.name, "state"]
-        if self.motions[ch].loc[action.name, "speedX"] is not 0:
+        if self.motions[ch].loc[action.name, "speedX"] != 0:
             self.characters[ch].speed_x = self.motions[ch].loc[action.name, "speedX"] if self.characters[ch].front else -self.motions[ch].loc[action.name, "speedX"]
         self.characters[ch].speed_y = self.motions[ch].loc[action.name, "speedY"]
         self.characters[ch].control = self.motions[ch].loc[action.name, "control"]
@@ -49,34 +49,34 @@ class Simulator:
             return False
         opp_hit_area_left = self.characters[oppInd].x + self.motions[oppInd].loc[attack.name, "hitAreaLeft"] if self.characters[oppInd].front else -self.motions[oppInd].loc[attack.name, "hitAreaLeft"]
         opp_hit_area_right = self.characters[oppInd].x + self.motions[oppInd].loc[attack.name, "hitAreaRight"] if self.characters[oppInd].front else -self.motions[oppInd].loc[attack.name, "hitAreaRight"]
-        opp_hit_area_top = self.characters[oppInd].y + self.motions[oppInd].loc[attack.name, "hitAreaTop"]
-        opp_hit_area_bottom = self.characters[oppInd].y + self.motions[oppInd].loc[attack.name, "hitAreaBottom"]
+        opp_hit_area_up = self.characters[oppInd].y + self.motions[oppInd].loc[attack.name, "hitAreaUp"]
+        opp_hit_area_down = self.characters[oppInd].y + self.motions[oppInd].loc[attack.name, "hitAreaDown"]
 
         att_hit_area_left = self.characters[oppInd].graphic_size_x + self.motions[oppInd].loc[attack.name, "attack.hitAreaLeft"]
         att_hit_area_right = self.characters[oppInd].graphic_size_x + self.motions[oppInd].loc[attack.name, "attack.hitAreaRight"]
-        att_hit_area_top = self.characters[oppInd].graphic_size_y + self.motions[oppInd].loc[attack.name, "attack.hitAreaTop"]
-        att_hit_area_bottom = self.characters[oppInd].graphic_size_y + self.motions[oppInd].loc[attack.name, "attack.hitAreaLeft"]
+        att_hit_area_up = self.characters[oppInd].graphic_size_y + self.motions[oppInd].loc[attack.name, "attack.hitAreaUp"]
+        att_hit_area_down = self.characters[oppInd].graphic_size_y + self.motions[oppInd].loc[attack.name, "attack.hitAreaDown"]
 
         hit_left = opp_hit_area_left <= att_hit_area_right
         hit_right = opp_hit_area_right >= att_hit_area_left
-        hit_top = opp_hit_area_top <= att_hit_area_bottom
-        hit_bottom = opp_hit_area_bottom >= att_hit_area_top
+        hit_up = opp_hit_area_up <= att_hit_area_down
+        hit_down = opp_hit_area_down >= att_hit_area_up
 
-        return hit_left and hit_right and hit_bottom and hit_top
+        return hit_left and hit_right and hit_down and hit_up
 
     def is_guard(self, oppInd, attack):
         is_guard = False
         match self.characters[1-oppInd].action:
             case Action.STAND_GUARD:
-                if self.motions[1-oppInd].loc[attack.name, "attackType"] == 1 or self.motions[1-oppInd].loc[attack.name, "attackType"] == 2:
+                if self.motions[1-oppInd].loc[attack.name, "attack.AttackType"] == 1 or self.motions[1-oppInd].loc[attack.name, "attack.AttackType"] == 2:
                     self.run_action(1 - oppInd, Action.STAND_GUARD_RECOV)
                     is_guard = True
             case Action.CROUCH_GUARD:
-                if self.motions[1-oppInd].loc[attack.name, "attackType"] == 1 or self.motions[1-oppInd].loc[attack.name, "attackType"] == 3:
+                if self.motions[1-oppInd].loc[attack.name, "attack.AttackType"] == 1 or self.motions[1-oppInd].loc[attack.name, "attack.AttackType"] == 3:
                     self.run_action(1 - oppInd, Action.CROUCH_GUARD_RECOV)
                     is_guard = True
             case Action.AIR_GUARD:
-                if self.motions[1-oppInd].loc[attack.name, "attackType"] == 1 or self.motions[1-oppInd].loc[attack.name, "attackType"] == 2:
+                if self.motions[1-oppInd].loc[attack.name, "attack.AttackType"] == 1 or self.motions[1-oppInd].loc[attack.name, "attack.AttackType"] == 2:
                     self.run_action(1 - oppInd, Action.AIR_GUARD_RECOV)
                     is_guard = True
             case Action.STAND_GUARD_RECOV:
@@ -100,29 +100,29 @@ class Simulator:
         direction = 1 if self.characters[oppInd].x <= self.characters[1-oppInd].x else -1
 
         if self.is_guard(oppInd, attack):
-            self.characters[1-oppInd].hp -= self.motions[1-oppInd].loc[attack.name, "guardDamage"]
-            self.characters[1-oppInd].energy += self.motions[1-oppInd].loc[attack.name, "giveEnergy"]
-            self.characters[1-oppInd].speed_x = direction * self.motions[1-oppInd].loc[attack.name, "impactX"] / 2
-            self.characters[1-oppInd].remaining_frame = self.motions[1-oppInd].loc[attack.name, "giveGuardRecov"]
-            self.characters[oppInd] += self.motions[1-oppInd].loc[attack.name, "guardGiveEnergy"]
+            self.characters[1-oppInd].hp -= self.motions[1-oppInd].loc[attack.name, "attack.GuardDamage"]
+            self.characters[1-oppInd].energy += self.motions[1-oppInd].loc[attack.name, "attack.GiveEnergy"]
+            self.characters[1-oppInd].speed_x = direction * self.motions[1-oppInd].loc[attack.name, "attack.ImpactX"] / 2
+            self.characters[1-oppInd].remaining_frame = self.motions[1-oppInd].loc[attack.name, "attack.GiveGuardRecov"]
+            self.characters[oppInd] += self.motions[1-oppInd].loc[attack.name, "attack.guardAddEnergy"]
         else:
-            if self.motions[1-oppInd].loc[attack.name, "attackType"] == 4:
+            if self.motions[1-oppInd].loc[attack.name, "attack.AttackType"] == 4:
                 st = self.characters[1-oppInd].state
                 if st != State.AIR and st != State.DOWN:
                     self.run_action(1 - oppInd, Action.THROW_SUFFER)
                     if self.characters[oppInd].action != Action.THROW_SUFFER:
                         self.run_action(oppInd, Action.THROW_HIT)
-                    self.characters[1-oppInd].hp -= self.motions[1-oppInd].loc[attack.name, "hitDamage"]
-                    self.characters[1-oppInd].energy =+ self.motions[1-oppInd].loc[attack.name, "giveEnergy"]
-                    self.characters[oppInd].energy += self.motions[1-oppInd].loc[attack.name, "hitAddEnergy"]
+                    self.characters[1-oppInd].hp -= self.motions[1-oppInd].loc[attack.name, "attack.HitDamage"]
+                    self.characters[1-oppInd].energy =+ self.motions[1-oppInd].loc[attack.name, "attack.GiveEnergy"]
+                    self.characters[oppInd].energy += self.motions[1-oppInd].loc[attack.name, "attack.HitAddEnergy"]
                 else:
-                    self.characters[1 - oppInd].hp -= self.motions[1-oppInd].loc[attack.name, "hitDamage"]
-                    self.characters[1 - oppInd].energy = + self.motions[1-oppInd].loc[attack.name, "giveEnergy"]
-                    self.characters[1 - oppInd].speed_x = direction * self.motions[1-oppInd].loc[attack.name, "impactX"]
-                    self.characters[1 - oppInd].speed_y = self.motions[1-oppInd].loc[attack.name, "impactY"]
-                    self.characters[oppInd].energy += self.motions[1-oppInd].loc[attack.name, "hitAddEnergy"]
+                    self.characters[1 - oppInd].hp -= self.motions[1-oppInd].loc[attack.name, "attack.HitDamage"]
+                    self.characters[1 - oppInd].energy = + self.motions[1-oppInd].loc[attack.name, "attack.GiveEnergy"]
+                    self.characters[1 - oppInd].speed_x = direction * self.motions[1-oppInd].loc[attack.name, "attack.ImpactX"]
+                    self.characters[1 - oppInd].speed_y = self.motions[1-oppInd].loc[attack.name, "attack.ImpactY"]
+                    self.characters[oppInd].energy += self.motions[1-oppInd].loc[attack.name, "attack.HitAddEnergy"]
 
-                    if not self.motions[1-oppInd].loc[attack.name, "dropProp"]:
+                    if not self.motions[1-oppInd].loc[attack.name, "attack.DownProp"]:
                         match st:
                             case State.STAND:
                                 self.run_action(1 - oppInd, Action.STAND_RECOV)
@@ -163,15 +163,6 @@ class Simulator:
 
     def processing_hit(self):
         is_hit = [False, False]
-
-        # for p in self.proj:
-        #     opp_ind = 1-p.player_number
-        #     if self.detectHit(opp_ind, p):
-        #         i = 1 - opp_ind
-        #         self.hitPlayer(opp_ind, i, p, currentFrame)
-        #     else:
-        #         self.proj.append(p)
-
         for i in range(0,2):
             opp_ind = 1 - i
             attack = self.characters[i].action
@@ -180,26 +171,17 @@ class Simulator:
                 self.hit_player(opp_ind, self.characters[i].action, self.current_frame)
 
     def update_attack_parameters(self):
-        #for p in self.proj:
-        #    p.active += 1
-        #    if not p.active < currentFrame:
-        #        self.proj.remove(p)
-        #    else:
-        #        p.current_hit_area.left += p.speed_x
-        #        p.current_hit_area.right+= p.speed_x
-        #        p.current_hit_area.top += p.speed_y
-        #        p.current_hit_area.bottom += p.speed_y
-
         for i in range(0,2):
             self.current_frame += 1
-            if self.current_frame <= self.motions[i].loc [self.characters[i].action.name, "attack.Active"]:
-                self.characters[i].action = None
+            if self.characters[i].action is not None:
+                if self.current_frame <= self.motions[i].loc[self.characters[i].action.name, "attack.Active"]:
+                    self.characters[i].action = None
 
     def update_characters(self):
         for i in range(0,2):
             self.characters[i].x += self.characters[i].speed_x
             self.characters[i].y += self.characters[i].speed_y
-            if self.characters[i].bottom >= 640:
+            if (self.characters[i].bottom >= 640) & (self.characters[i].speed_x != 0):
                 self.characters[i].speed_x += -self.characters[i].speed_x/abs(self.characters[i].speed_x)
                 self.characters[i].speed_y = 0
             else:

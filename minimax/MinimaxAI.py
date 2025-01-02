@@ -14,11 +14,14 @@ from pyftg.models.round_result import RoundResult
 from pyftg.models.screen_data import ScreenData
 from pyftg.models.enums.action import Action
 
+from minimax.simulation.simulation import Simulator
+
 logger = logging.getLogger(__name__)
 logger.propagate = True
 
 class MinimaxAI(AIInterface):
     def __init__(self, depth=3, character="ZEN"):
+        self.simulator = None
         self.action = None
         self.otherplayer = None
         self.audio_data = None
@@ -33,6 +36,7 @@ class MinimaxAI(AIInterface):
         self.motions = None
         self.character = character
         self.time = 0
+
     def name(self) -> str:
         return self.__class__.__name__
 
@@ -47,8 +51,7 @@ class MinimaxAI(AIInterface):
             self.otherplayer = 1
         else:
             self.otherplayer = 0
-        self.motions = pandas.read_csv("DareFightingICE-7.0beta/data/characters/ZEN/Motion.csv")
-        self.motions.set_index("motionName", inplace = True)
+        self.simulator = Simulator(p2 = self.character)
 
     def get_non_delay_frame_data(self, frame_data: FrameData):
         self.frame_data = frame_data
@@ -89,7 +92,7 @@ class MinimaxAI(AIInterface):
             if best_move:
                 logger.info(f"Executing move: {best_move}")
                 self.key.empty()
-                #self.cc.skill_cancel()
+                self.cc.skill_cancel()
                 self.cc.command_call(best_move)
 
     def minimax_decision(self, state, depth, alpha, beta, maximizing_player):
@@ -100,7 +103,7 @@ class MinimaxAI(AIInterface):
             max_eval = -math.inf
             best_action = None
             for action in Action:
-                new_state = self.simulate_action(state, action, False)
+                new_state = self.simulator.process_fight(state, action, 1)
                 eval = self.minimax_decision(new_state, depth - 1, alpha, beta, False)
                 if eval > max_eval:
                     max_eval = eval
@@ -112,39 +115,13 @@ class MinimaxAI(AIInterface):
         else:
             min_eval = math.inf
             for action in Action:
-                new_state = self.simulate_action(state, action, True)
+                new_state = self.simulator.process_fight(state, action, 0)
                 eval = self.minimax_decision(new_state, depth - 1, alpha, beta, True)
                 min_eval = min(min_eval, eval)
                 beta = min(beta, eval)
                 if beta <= alpha:
                     break
             return min_eval
-
-    def simulate_action(self, state: FrameData, action, player: bool) -> FrameData:
-        # Creare una copia simulata di FrameData
-        new_state = FrameData(
-            character_data=state.character_data.copy(),
-            current_frame_number=state.current_frame_number,
-            current_round=state.current_round,
-            projectile_data=state.projectile_data.copy(),
-            empty_flag=state.empty_flag,
-            front=state.front.copy(),
-        )
-        curr = new_state.get_character(player)
-        opp = new_state.get_character(~player)
-        curr_box = ((curr.x + self.motions.loc[action.name, "hitAreaLeft"], curr.y - self.motions.loc[action.name, "hitAreaDown"]), (curr.x - self.motions.loc[action.name, "hitAreaRight"], curr.y + self.motions.loc[action.name, "hitAreaUp"]))
-        opp_box = ((opp.x + self.motions.loc[action.name, "hitAreaLeft"], opp.y - self.motions.loc[action.name, "hitAreaDown"]), (opp.x - self.motions.loc[action.name, "hitAreaRight"], opp.y + self.motions.loc[action.name, "hitAreaUp"]))
-        curr_atk_box = (
-        (curr.x + self.motions.loc[action.name, "hitAreaLeft"], curr.y - self.motions.loc[action.name, "hitAreaDown"]),
-        (curr.x - self.motions.loc[action.name, "hitAreaRight"], curr.y + self.motions.loc[action.name, "hitAreaUp"]))
-        if curr.energy + self.motions.loc[action.name, "attack.StartAddEnergy"] >= 0:
-            if curr.state.name == self.motions.loc[action.name, "state"]:
-                #my_box = ((), curr.y - self.motions.loc[action.name]),())
-                opp.hp -= self.motions.loc[action.name, "attack.HitDamage"]
-
-        new_state.character_data[0 if player else 1] = curr
-        new_state.character_data[0 if ~player else 1] = opp
-        return new_state
 
     def evaluate(self, state: FrameData) -> float:
         my_character = state.get_character(self.player)
