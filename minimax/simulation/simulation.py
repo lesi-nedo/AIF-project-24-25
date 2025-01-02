@@ -1,3 +1,5 @@
+from os import MFD_ALLOW_SEALING
+
 from pyftg.models.frame_data import FrameData
 from pyftg.models.enums.action import Action
 import pandas as pandas
@@ -24,11 +26,11 @@ class Simulator:
 
 
     def ableAction(self, ch, action: Action):
-        nextMotion = self.motions[ch, action.name]
-        currMotion = self.motions[ch, self.characters[ch].action.name]
+        nextMotion = self.motions[ch][ action.name]
+        currMotion = self.motions[ch][ self.characters[ch].action.name]
         if self.characters[ch].energy < -nextMotion["attack.StartAddEnergy"]:
             return False
-        elif self.characyers[ch].control:
+        elif self.characters[ch].control:
             return True
         else:
             checkframe = currMotion["cancellableFrame"] <= currMotion["frameNumber"] - self.character[ch].remainingFrame
@@ -36,7 +38,7 @@ class Simulator:
             return checkframe & checkAction
 
     def runAction(self, ch, action: Action):
-        motion = self.motions[ch, Action.name]
+        motion = self.motions[ch][ Action.name]
         if self.characters[ch].action is None:
             self.characters[ch].remaining_frame = motion["frameNumber"]
             self.characters[ch].energy += motion["attack.StartAddEnergy"]
@@ -48,20 +50,111 @@ class Simulator:
         self.characters[ch].control = motion["control"]
 
     def detectHit(self, oppInd: int, attack):
-        pass
+        if attack is None or self.characters[oppInd].state == 0:
+            return False
+        oppHitAreaLeft = self.characters[oppInd].x + self.motions[oppInd]["hitAreaLeft"] if self.characters[oppInd].front else -self.motions[oppInd]["hitAreaLeft"]
+        oppHitAreaRight = self.characters[oppInd].x + self.motions[oppInd]["hitAreaRight"] if self.characters[oppInd].front else -self.motions[oppInd]["hitAreaRight"]
+        oppHitAreaTop = self.characters[oppInd].y + self.motions[oppInd]["hitAreaTop"]
+        oppHitAreaBottom = self.characters[oppInd].y + self.motions[oppInd]["hitAreaBottom"]
+
+        attHitAreaLeft = self.characters[oppInd].graphic_x + self.motions[oppInd]["attack.hitAreaLeft"]
+        attHitAreaRight = self.characters[oppInd].graphic_x + self.motions[oppInd]["attack.hitAreaRight"]
+        attHitAreaTop = self.characters[oppInd].graphic_y + self.motions[oppInd]["attack.hitAreaTop"]
+        attHitAreaBottom = self.characters[oppInd].graphic_y + self.motions[oppInd]["attack.hitAreaLeft"]
+
+        hitLeft = oppHitAreaLeft <= attHitAreaRight
+        hitRight = oppHitAreaRight >= attHitAreaLeft
+        hitTop = oppHitAreaTop <= attHitAreaBottom
+        hitBottom = oppHitAreaBottom >= attHitAreaTop
+
+        return hitLeft and hitRight and hitBottom and hitTop
+
+    def isGuard(self, oppInd, attack):
+        isGuard = False
+        match self.characters[1-oppInd]:
+            case State.STAND_GUARD:
+                if self.motions[1-oppInd][attack.name]["attackType"] == 1 or self.motions[1-oppInd][attack.name]["attackType"] == 2:
+                    self.runAction(1-oppInd, Action.STAND_GUARD_RECOV)
+                    isGuard = True
+            case State.CROUCH_GUARD:
+                if self.motions[1-oppInd][attack.name]["attackType"] == 1 or self.motions[1-oppInd][attack.name]["attackType"] == 3:
+                    self.runAction(1-oppInd, Action.CROUCH_GUARD_RECOV)
+                    isGuard = True
+            case State.AIR_GUARD:
+                if self.motions[1-oppInd][attack.name]["attackType"] == 1 or self.motions[1-oppInd][attack.name]["attackType"] == 2:
+                    self.runAction(1-oppInd, Action.AIR_GUARD_RECOV)
+                    isGuard = True
+            case State.STAND_GUARD_RECOV:
+                self.runAction(1 - oppInd, Action.STAND_GUARD_RECOV)
+                isGuard = True
+            case State.CROUCH_GUARD_RECOV:
+                self.runAction(1 - oppInd, Action.CROUCH_GUARD_RECOV)
+                isGuard = True
+            case State.AIR_GUARD_RECOV:
+                self.runAction(1 - oppInd, Action.AIR_GUARD_RECOV)
+                isGuard = True
+                pass
+            case _:
+                isGuard = False
+        return isGuard
 
     def hitPlayer(self, oppInd, attInd, attack, currentFrame):
-        pass
+        self.characters[oppInd].hitcount += 1
+        self.characters[oppInd].lastHitFrame = currentFrame
+
+        direction = 1 if self.characters[oppInd].x <= self.characters[1-oppInd].x else -1
+
+        if self.isGuard(attack):
+            self.characters[1-oppInd].hp -= self.motions[1-oppInd][attack.name]["guardDamage"] + self.characters[oppInd].extra_damage
+            self.characters[1-oppInd].energy += self.motions[1-oppInd][attack.name]["giveEnergy"]
+            self.characters[1-oppInd].speed_x = direction * self.motions[1-oppInd][attack.name]["impactX"] / 2
+            self.characters[1-oppInd].remaining_frame = self.motions[1-oppInd][attack.name]["giveGuardRecov"]
+            self.characters[oppInd] += self.motions[1-oppInd][attack.name]["guardGiveEnergy"]
+        else:
+            if self.motions[1-oppInd][attack.name]["attackType"] == 4:
+                st = self.characters[1-oppInd].state
+                if st != State.AIR and st != State.DOWN:
+                    self.runAction(1-oppInd, Action.THROW_SUFFER)
+                    if self.characters[oppInd].action != Action.THROW_SUFFER:
+                        self.runAction(oppInd, Action.THROW_HIT)
+                    self.characters[1-oppInd].hp -= self.motions[1-oppInd][attack.name]["hitDamage"] + self.characters[oppInd].extra_damage
+                    self.characters[1-oppInd].energy =+ self.motions[1-oppInd][attack.name]["giveEnergy"]
+                    self.characters[oppInd].energy += self.motions[1-oppInd][attack.name]["hitAddEnergy"]
+                else:
+                    self.characters[1 - oppInd].hp -= self.motions[1 - oppInd][attack.name]["hitDamage"] + \
+                                                      self.characters[oppInd].extra_damage
+                    self.characters[1 - oppInd].energy = + self.motions[1 - oppInd][attack.name]["giveEnergy"]
+                    self.characters[1 - oppInd].speed_x = direction * self.motions[1 - oppInd][attack.name]["impactX"]
+                    self.characters[1 - oppInd].speed_y = self.motions[1 - oppInd][attack.name]["impactY"]
+                    self.characters[oppInd].energy += self.motions[1 - oppInd][attack.name]["hitAddEnergy"]
+
+                    if not self.motions[1-oppInd][attack.name]["dropProp"]:
+                        match st:
+                            case State.STAND:
+                                self.runAction(1 - oppInd, Action.STAND_RECOV)
+                                break
+                            case State.CROUCH:
+                                self.runAction(1 - oppInd, Action.CROUCH_RECOV)
+                                break
+                            case State.AIR:
+                                self.runAction(1-oppInd, Action.AIR_RECOV)
+                                break
+                            case _:
+                                break
+                    else:
+                        self.runAction(1-oppInd, Action.CHANGE_DOWN)
+                        self.characters[1-oppInd].remaining_frame = self.motions[1-oppInd][Action.CHANGE_DOWN.name]["frameNumber"]
+
 
     def processFight(self, currentFrame: int = 0):
-        self.processingCommands(currentFrame)
+        self.processingCommands()
         self.processingHit(currentFrame)
         self.updateAttackParameters(currentFrame)
         self.updateCharacters(currentFrame)
 
     def processingCommands(self):
-        for i in range(1,2):
-            self.characters[i].action =
+        for i in range(0,2):
+            self.runAction(i, self.action_list.deque())
 
     def processingHit(self, currentFrame: int):
         isHit = [False, False]
