@@ -3,12 +3,10 @@ from pyftg.models.frame_data import FrameData
 from pyftg.models.enums.action import Action
 import pandas as pandas
 
-motions = []
-def load_motions(char_name, i):
-    if motions[i] is None:
-        motions[i].set_index("motionName", inplace = True)
-        motions[i] = pandas.read_csv(f'.DareFightingICE-7.0beta/data/characters/{char_name}/Motion.csv')
-    return motions[i]
+def load_motions(char_name):
+    motions = pandas.read_csv(f'.DareFightingICE-7.0beta/data/characters/{char_name}/Motion.csv')
+    motions = motions.set_index("motionName")
+    return motions
 
 class Simulator:
     def __init__(self, p1:str = 'ZEN', p2:str = 'ZEN'):
