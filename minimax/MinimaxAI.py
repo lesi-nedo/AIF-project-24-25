@@ -103,6 +103,7 @@ class MinimaxAI(AIInterface):
             max_eval = -math.inf
             best_action = None
             for action in Action:
+                self.simulator.able_action(state, action, 1)
                 new_state = self.simulator.process_fight(state, action, 1)
                 eval = self.minimax_decision(new_state, depth - 1, alpha, beta, False)
                 if eval > max_eval:
@@ -115,6 +116,7 @@ class MinimaxAI(AIInterface):
         else:
             min_eval = math.inf
             for action in Action:
+                self.simulator.able_action(state, action, 0)
                 new_state = self.simulator.process_fight(state, action, 0)
                 eval = self.minimax_decision(new_state, depth - 1, alpha, beta, True)
                 min_eval = min(min_eval, eval)

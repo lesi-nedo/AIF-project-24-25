@@ -17,21 +17,26 @@ class Simulator:
         self.motions = [None, None]
         self.motions[0] = load_motions(p1)
         self.motions[1] = load_motions(p2)
-
         self.characters = None
 
 
-    # def ableAction(self, ch, action: Action):
-    #     nextMotion = self.motions[ch][ action.name]
-    #     currMotion = self.motions[ch][ self.characters[ch].action.name]
-    #     if self.characters[ch].energy < -nextMotion["attack.StartAddEnergy"]:
-    #         return False
-    #     elif self.characters[ch].control:
-    #         return True
-    #     else:
-    #         check-frame = currMotion["cancellableFrame"] <= currMotion["frameNumber"] - self.character[ch].remainingFrame
-    #         checkAction = currMotion["cancellableMotionLevel"] >= nextMotion["motionLevel"]
-    #         return check-frame & checkAction
+    def able_action(self, frame_data: FrameData, action: Action, ch: int):
+        self.frame_data = frame_data
+        self.characters = self.frame_data.character_data.copy()
+        self.current_frame = self.frame_data.current_frame_number
+        self.playing_character = ch
+        self.playing_action = action
+
+        if self.characters[ch].energy < -self.motions[ch].loc[action.name, "attack.StartAddEnergy"]:
+            return False
+        elif self.characters[ch].control:
+            return True
+        else:
+            if self.characters[ch].action is None:
+                return True
+            check_frame = self.motions[ch].loc[self.characters[ch].action.name, "cancelAbleFrame"] <= self.motions[ch].loc[self.characters[ch].action.name, "frameNumber"] - self.characters[ch].remaining_frame
+            check_action = self.motions[ch].loc[self.characters[ch].action.name, "cancelAbleMotionLevel"] >= self.motions[ch].loc[action.name, "motionLevel"]
+            return check_frame and check_action
 
     def run_action(self, ch, action: Action):
         if self.characters[ch].action is not action:
