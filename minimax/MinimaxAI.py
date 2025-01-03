@@ -101,10 +101,12 @@ class MinimaxAI(AIInterface):
 
         if maximizing_player:
             max_eval = -math.inf
-            best_action = None
+            best_action = Action.NEUTRAL
             for action in Action:
-                self.simulator.able_action(state, action, 1)
-                new_state = self.simulator.process_fight(state, action, 1)
+                able = Simulator().able_action(state, action, 1)
+                if not able:
+                    continue
+                new_state = Simulator().process_fight(state, action, 1)
                 eval = self.minimax_decision(new_state, depth - 1, alpha, beta, False)
                 if eval > max_eval:
                     max_eval = eval
@@ -112,6 +114,8 @@ class MinimaxAI(AIInterface):
                 alpha = max(alpha, eval)
                 if beta <= alpha:
                     break
+            if depth == self.depth:
+                print(best_action, eval)
             return best_action if depth == self.depth else max_eval
         else:
             min_eval = math.inf
@@ -136,7 +140,7 @@ class MinimaxAI(AIInterface):
         )
         my_hp = my_character.hp
         opponent_hp = opponent_character.hp
-        return my_hp - opponent_hp - distance * 0.1
+        return my_hp - opponent_hp
 
     def is_terminal(self, state):
         my_character = state.get_character(self.player)

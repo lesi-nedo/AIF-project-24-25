@@ -1,7 +1,8 @@
 from pyftg.models.enums.state import State
 from pyftg.models.frame_data import FrameData
 from pyftg.models.enums.action import Action
-import pandas as pandas
+import pandas
+import copy
 
 def load_motions(char_name):
     motions = pandas.read_csv(f'DareFightingICE-7.0beta/data/characters/{char_name}/Motion.csv')
@@ -10,6 +11,8 @@ def load_motions(char_name):
 
 class Simulator:
     def __init__(self, p1:str = 'ZEN', p2:str = 'ZEN'):
+        self.front = None
+        self.proj = None
         self.current_frame = None
         self.playing_action = None
         self.playing_character = None
@@ -21,8 +24,8 @@ class Simulator:
 
 
     def able_action(self, frame_data: FrameData, action: Action, ch: int):
-        self.frame_data = frame_data
-        self.characters = self.frame_data.character_data.copy()
+        self.frame_data = copy.deepcopy(frame_data)
+        self.characters = self.frame_data.character_data
         self.current_frame = self.frame_data.current_frame_number
         self.playing_character = ch
         self.playing_action = action
@@ -39,7 +42,7 @@ class Simulator:
             return check_frame and check_action
 
     def run_action(self, ch, action: Action):
-        if self.characters[ch].action is not action:
+        if self.characters[ch].action != action:
             self.characters[ch].remaining_frame = self.motions[ch].loc[action.name, "frameNumber"]
             self.characters[ch].energy += self.motions[ch].loc[action.name, "attack.StartAddEnergy"]
         self.characters[ch].action = action
@@ -57,10 +60,10 @@ class Simulator:
         opp_hit_area_up = self.characters[oppInd].y + self.motions[oppInd].loc[attack.name, "hitAreaUp"]
         opp_hit_area_down = self.characters[oppInd].y + self.motions[oppInd].loc[attack.name, "hitAreaDown"]
 
-        att_hit_area_left = self.characters[oppInd].graphic_size_x + self.motions[oppInd].loc[attack.name, "attack.hitAreaLeft"]
-        att_hit_area_right = self.characters[oppInd].graphic_size_x + self.motions[oppInd].loc[attack.name, "attack.hitAreaRight"]
-        att_hit_area_up = self.characters[oppInd].graphic_size_y + self.motions[oppInd].loc[attack.name, "attack.hitAreaUp"]
-        att_hit_area_down = self.characters[oppInd].graphic_size_y + self.motions[oppInd].loc[attack.name, "attack.hitAreaDown"]
+        att_hit_area_left = self.characters[1-oppInd].graphic_size_x + self.motions[1-oppInd].loc[attack.name, "attack.hitAreaLeft"]
+        att_hit_area_right = self.characters[1-oppInd].graphic_size_x + self.motions[1-oppInd].loc[attack.name, "attack.hitAreaRight"]
+        att_hit_area_up = self.characters[1-oppInd].graphic_size_y + self.motions[1-oppInd].loc[attack.name, "attack.hitAreaUp"]
+        att_hit_area_down = self.characters[1-oppInd].graphic_size_y + self.motions[1-oppInd].loc[attack.name, "attack.hitAreaDown"]
 
         hit_left = opp_hit_area_left <= att_hit_area_right
         hit_right = opp_hit_area_right >= att_hit_area_left
@@ -69,29 +72,29 @@ class Simulator:
 
         return hit_left and hit_right and hit_down and hit_up
 
-    def is_guard(self, oppInd, attack):
+    def is_guard(self, ch, attack):
         is_guard = False
-        match self.characters[1-oppInd].action:
+        match self.characters[ch].action:
             case Action.STAND_GUARD:
-                if self.motions[1-oppInd].loc[attack.name, "attack.AttackType"] == 1 or self.motions[1-oppInd].loc[attack.name, "attack.AttackType"] == 2:
-                    self.run_action(1 - oppInd, Action.STAND_GUARD_RECOV)
+                if self.motions[ch].loc[attack.name, "attack.AttackType"] == 1 or self.motions[ch].loc[attack.name, "attack.AttackType"] == 2:
+                    self.run_action(ch, Action.STAND_GUARD_RECOV)
                     is_guard = True
             case Action.CROUCH_GUARD:
-                if self.motions[1-oppInd].loc[attack.name, "attack.AttackType"] == 1 or self.motions[1-oppInd].loc[attack.name, "attack.AttackType"] == 3:
-                    self.run_action(1 - oppInd, Action.CROUCH_GUARD_RECOV)
+                if self.motions[ch].loc[attack.name, "attack.AttackType"] == 1 or self.motions[ch].loc[attack.name, "attack.AttackType"] == 3:
+                    self.run_action(ch, Action.CROUCH_GUARD_RECOV)
                     is_guard = True
             case Action.AIR_GUARD:
-                if self.motions[1-oppInd].loc[attack.name, "attack.AttackType"] == 1 or self.motions[1-oppInd].loc[attack.name, "attack.AttackType"] == 2:
-                    self.run_action(1 - oppInd, Action.AIR_GUARD_RECOV)
+                if self.motions[ch].loc[attack.name, "attack.AttackType"] == 1 or self.motions[1-oppInd].loc[attack.name, "attack.AttackType"] == 2:
+                    self.run_action(ch, Action.AIR_GUARD_RECOV)
                     is_guard = True
             case Action.STAND_GUARD_RECOV:
-                self.run_action(1 - oppInd, Action.STAND_GUARD_RECOV)
+                self.run_action(ch, Action.STAND_GUARD_RECOV)
                 is_guard = True
             case Action.CROUCH_GUARD_RECOV:
-                self.run_action(1 - oppInd, Action.CROUCH_GUARD_RECOV)
+                self.run_action(ch, Action.CROUCH_GUARD_RECOV)
                 is_guard = True
             case Action.AIR_GUARD_RECOV:
-                self.run_action(1 - oppInd, Action.AIR_GUARD_RECOV)
+                self.run_action(ch, Action.AIR_GUARD_RECOV)
                 is_guard = True
                 pass
             case _:
@@ -144,8 +147,10 @@ class Simulator:
 
 
     def process_fight(self, frame_data: FrameData, action: Action, ch: int):
-        self.frame_data = frame_data
-        self.characters = self.frame_data.character_data.copy()
+        self.frame_data = copy.deepcopy(frame_data)
+        self.characters = self.frame_data.character_data
+        self.proj = self.frame_data.projectile_data
+        self.front = self.frame_data.front
         self.current_frame = self.frame_data.current_frame_number
         self.playing_character = ch
         self.playing_action = action

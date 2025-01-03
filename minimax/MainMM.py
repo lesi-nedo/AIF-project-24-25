@@ -18,7 +18,7 @@ async def start_process(
         game_num: int = 1,
 ):
     gateway = Gateway(host, port)
-    agent2 = MinimaxAI(depth=3, character=character)
+    agent2 = MinimaxAI(depth=1, character=character)
     gateway.register_ai("MinimaxAI", agent2)
     await gateway.run_game(
         [character, character], ["Keyboard", "MinimaxAI"], game_num
