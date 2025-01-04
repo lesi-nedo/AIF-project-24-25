@@ -84,7 +84,7 @@ class Simulator:
                     self.run_action(ch, Action.CROUCH_GUARD_RECOV)
                     is_guard = True
             case Action.AIR_GUARD:
-                if self.motions[ch].loc[attack.name, "attack.AttackType"] == 1 or self.motions[1-oppInd].loc[attack.name, "attack.AttackType"] == 2:
+                if self.motions[ch].loc[attack.name, "attack.AttackType"] == 1 or self.motions[ch].loc[attack.name, "attack.AttackType"] == 2:
                     self.run_action(ch, Action.AIR_GUARD_RECOV)
                     is_guard = True
             case Action.STAND_GUARD_RECOV:
@@ -156,8 +156,8 @@ class Simulator:
         self.playing_action = action
         self.processing_commands()
         self.processing_hit()
-        self.update_attack_parameters()
-        self.update_characters()
+       # self.update_attack_parameters()
+       # self.update_characters()
         
         return FrameData(
             character_data=self.characters,
