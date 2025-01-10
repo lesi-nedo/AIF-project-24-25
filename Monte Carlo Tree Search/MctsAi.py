@@ -1,5 +1,8 @@
 import logging
 import numpy as np
+import inspect
+import sys
+import traceback
 
 from pyftg import (AIInterface, AudioData, CommandCenter, FrameData, GameData,
                    Key, RoundResult, ScreenData)
@@ -7,42 +10,14 @@ from pyftg import (AIInterface, AudioData, CommandCenter, FrameData, GameData,
 from pyftg.models.attack_data import AttackData
 from pyftg.models.base_model import BaseModel
 from pyftg.models.character_data import CharacterData
+from Utility import Utility
+from mcts.searcher.mcts import MCTS
+from FighterState import FighterState
+import math
+from mcts.searcher.mcts import TreeNode
 
 logger = logging.getLogger(__name__)
 logger.propagate = True
-
-class Utility():
-    @classmethod
-    def get_distance(Player1: CharacterData, Player2: CharacterData): # norm_2(pos1-pos2)
-        [x1,y1] = [Player1.x - Player2.x, Player1.y - Player2.y]
-        return np.linalg.norm([x1,y1])
-    @classmethod
-    def get_hp(Player1):
-        return Player1.get_hp()
-    @classmethod
-    def get_player_width_height(Player: CharacterData):
-        return [Player.right - Player.left, Player.bottom - Player.top]
-    @classmethod
-    def attack_in_range(Player1: CharacterData, Player2: CharacterData, Attack: AttackData):
-        pass
-    @classmethod
-    def is_attacking(Player: CharacterData):
-        return Player.attack_data and not Player.attack_data.empty_flag
-    @classmethod
-    def attack_will_collide(Attack: AttackData, Player: CharacterData):
-        [w,h] = Utility.get_player_width_height(Player)
-        [x,y] = [Player.x,Player.y]
-        if Player.speed_x:
-            x = x * Player.speed_x
-        if Player.speed_y:
-            y = y * Player.speed_y
-        hit_area = Attack.current_hit_area
-        if hit_area.right > x and hit_area.left < x + w and hit_area.bottom > y and hit_area.top < y + h:
-            return True
-        return False
-    @classmethod
-    def action_is_colliding_myself(Opponent: CharacterData):
-        return Opponent.hit_confirm
 
 
 class MctsAi(AIInterface):
@@ -87,19 +62,27 @@ class MctsAi(AIInterface):
 
     def processing(self):
         if self.frame_data.empty_flag or self.frame_data.current_frame_number <= 0:
+
             return
-        MctsAi.retract_frame_info()
-        MctsAi.update_every_round(self.mycharacter_data,"1",self.othercharacter_data.attack_data.impact_x,self.othercharacter_data.attack_data.impact_y,self.othercharacter_data.hit_confirm)
-        MctsAi.update_every_round(self.othercharacter_data,"2",self.mycharacter_data.attack_data.impact_x,self.mycharacter_data.attack_data.impact_y,self.mycharacter_data.hit_confirm)
         if self.cc.get_skill_flag():
             self.key = self.cc.get_skill_key()
         else:
-            resolve = list(MctsAi.query("optimal_action(player1, player2, Action)"))
-            if resolve:
-                print(resolve)
             self.key.empty()
             self.cc.skill_cancel()
-            self.cc.command_call("B")
+            initial_state = FighterState(self.game_data, self.cc, self.mycharacter_data, self.othercharacter_data, self.player)
+            # Ora inizializzo il searcher con tutti i parametri impostati (tempo limite; iterazioni massime; valore della costante c)
+            searcher = MCTS(timeLimit=400, explorationConstant=2)
+            try:
+                best_action = searcher.search(initialState=initial_state)
+                #self.cc.command_call(best_action)
+                #logger.info("AZIONE MIGLIORE: "+str(best_action))
+                self.cc.command_call(str(best_action).upper())
+            except Exception as e:
+                tb = sys.exc_info()[-1]
+                stk = traceback.extract_tb(tb, 1)
+                fname = stk[0][2]
+                logger.warning(e)
+            #self.cc.command_call(best_action)
     
     def round_end(self, round_result: RoundResult):
         logger.info(f"round end: {round_result}")

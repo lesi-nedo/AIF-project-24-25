@@ -66,6 +66,7 @@ boud_hp_strategy(15)
 
 
 was_hostile(Player, ID) :- character_attack(Player, AttackID), AttackID \= 0, ID = AttackID.
+was_hostile(Player, ID) :- character_attack(Player, AttackID), AttackID \= 0, ID = AttackID.
 player_was_moving(Player) :- character_speed(Player, X_v, Y_v), (X_v \=0; Y_v \=0).
 player_predict_next_position(Player, FX, FY, FD) :- frame_scaling_factor(F), knockback(Player, X_m, Y_m), character_xyd(Player, X, Y, D), character_speed(Player, X_v, Y_v), FX is X + (X_v + X_m) * D * F, FY is Y + (Y_v + Y_m) * D * F, FD is D.
 player_predict_distance(Player1, Player2, D) :- player_predict_next_position(Player1, FX1, FY1, _), player_predict_next_position(Player2, FX2, FY2, _), D = sqrt((FX1 - FX2) ** 2 + (FY1 - FY2) ** 2), Player1 \= Player2.

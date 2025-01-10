@@ -7,7 +7,6 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 
 from pyswip import Prolog
-
 from pyftg import (AIInterface, AudioData, CommandCenter, FrameData, GameData,
                    Key, RoundResult, ScreenData)
 
