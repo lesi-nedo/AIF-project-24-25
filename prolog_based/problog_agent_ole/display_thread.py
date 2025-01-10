@@ -16,12 +16,14 @@ class DisplayThread(threading.Thread):
         super().__init__()
         self.width = width
         self.height = height
-        self.queue = queue.Queue()
-        self.log_queue = queue.Queue(maxsize=10)
+        self.queue = queue.Queue(maxsize=2)
+        self.log_queue = queue.Queue(maxsize=5)
         self.running = True
         self.fig: Optional[plt.Figure] = None
         self.ax: Optional[plt.Axes] = None
         self.img_plot = None
+        self.frame_counter = 0
+        self.skip_frames = 8
 
     def get_latest_logs(self) -> List[str]:
         logs = []
@@ -54,7 +56,13 @@ class DisplayThread(threading.Thread):
         while self.running:
             
             try:
-                screen_data = self.queue.get(timeout=0.1)
+                # Skip frames
+                self.frame_counter += 1
+                if self.frame_counter % self.skip_frames != 0:
+                    continue
+
+                # Non-blocking queue get with timeout
+                screen_data = self.queue.get(timeout=0.001)
                 self._update_display(screen_data)
             except queue.Empty:
                 continue
@@ -66,7 +74,7 @@ class DisplayThread(threading.Thread):
         plt.ioff()
         
        # Create figure and display area for messages
-        self.fig = plt.figure(figsize=(15, 17))
+        self.fig = plt.figure(figsize=(10, 12), dpi=80)
         
         # Main game display
         self.ax = self.fig.add_subplot(2, 1, 1)  # Top subplot for game
@@ -75,10 +83,12 @@ class DisplayThread(threading.Thread):
         self.ax.axis("off")
         self.ax.set_aspect("equal")
         self.ax.set_title("Game Scene")
+        # Initialize image plot with optimized settings
         self.img_plot = self.ax.imshow(
-            np.zeros((self.height, self.width, 3), dtype=np.uint8)
+            np.zeros((self.height, self.width, 3), dtype=np.uint8),
+            interpolation='nearest',  # Faster interpolation
+            animated=True  # Optimize for animation
         )
-
         # Text area for messages
         self.text_ax = self.fig.add_subplot(2, 1, 2)  # Bottom subplot for text
         self.text_ax.axis('off')
@@ -88,8 +98,7 @@ class DisplayThread(threading.Thread):
                                         fontfamily='monospace')
         
         
-        self.fig.canvas.draw()
-        self.fig.canvas.flush_events()
+        self.fig.tight_layout()
         
         plt.close('all')
         display.clear_output(wait=True)
@@ -105,14 +114,17 @@ class DisplayThread(threading.Thread):
             img = np.flipud(img)
             
             self.img_plot.set_array(img)
-            # Update text with latest log messages
-            latest_logs = '\n'.join(self.get_latest_logs())  # Implement this method to get your log messages
-            self.text_box.set_text(latest_logs)
+            
+            # Update text less frequently
+            if self.frame_counter % 14 == 0:  # Update text every 14th frame
+                latest_logs = '\n'.join(self.get_latest_logs())
+                self.text_box.set_text(latest_logs)
 
-
-            self.fig.canvas.draw()
+            # Minimal redraw
+            self.fig.canvas.draw_idle()
             self.fig.canvas.flush_events()
             
+            # Update display
             self.display_handle.update(self.fig)
             
         except Exception as e:

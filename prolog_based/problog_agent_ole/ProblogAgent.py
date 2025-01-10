@@ -324,11 +324,6 @@ class ProblogAgent(AIInterface):
         self.cc.set_frame_data(self.frame_data, self.my_number)
         self.is_control = is_control
 
-
-        
-    def get_screen_data(self, screen_data: ScreenData):
-        self.screen_data = screen_data
-
     def get_audio_data(self, audio_data: AudioData):
         self.audio_data = audio_data
 
@@ -760,14 +755,12 @@ class ProblogAgent(AIInterface):
                 if not screen_data or not screen_data.display_bytes:
                     logger.debug("No display bytes available")
                     return
-                    
-                logger.debug(f"Queue size before put: {self.display_thread.queue.qsize()}")
+                if self.display_thread.queue.full():
+                    return
                 self.display_thread.queue.put_nowait(screen_data.display_bytes)
-                logger.debug(f"Successfully queued screen data")
-                logger.debug(f"Queue size after put: {self.display_thread.queue.qsize()}")
                 
             except queue.Full:
-                logger.warning("Display queue is full, skipping frame")
+                pass
             except Exception as e:
                 logger.error(f"Error queueing screen data: {e}")
             
