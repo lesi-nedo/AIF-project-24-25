@@ -16,7 +16,7 @@ async def start_process(host:str , port: int, character: str = "ZEN", game_numbe
     a2 = ProblogAgent(plot_scenes=plot_scenes)
     gateway.register_ai("ProblogAgent", a2)
     typer.echo(f"Running game Human vs {a2.name()}")
-    await gateway.run_game([character, character], ["Keyboard", "ProblogAgent"], game_number)
+    await gateway.run_game([character, character], ["MctsAi23i","ProblogAgent"], game_number)
 
 
 @app.command()
