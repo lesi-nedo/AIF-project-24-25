@@ -71,7 +71,7 @@ logger = logging.getLogger(__name__)
 problog_logger = logging.getLogger("problog")
 problog_logger.setLevel(logging.ERROR)
 
-
+logger.info("Working Path: {}".format(os.getcwd()))
 class ProblogAgent(AIInterface):
     def __init__(self, k_best_value: int = 5, plot_scenes: bool = False):
         # time.sleep(20)
@@ -109,7 +109,7 @@ class ProblogAgent(AIInterface):
         self.count_frames = 0
         self.sent = False
         self.enough = False
-        self.prefix = "prolog_based/problog_agent_ole/"
+        self.prefix = "./prolog_based/problog_agent_ole/"
         self.kb_rules_file_name = "KB_V1.pl"
         self.kb_path_rules = self.prefix + self.kb_rules_file_name
         self.exec_action = ["dash"]
