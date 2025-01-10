@@ -21,7 +21,7 @@ async def start_process(
     agent2 = PrologAI()
     gateway.register_ai("PrologAI", agent2)
     await gateway.run_game(
-        [character, character], ["Keyboard", "PrologAI"], game_num
+        [character, character], ["MctsAi23i", "PrologAI"], game_num
     )
       
 
