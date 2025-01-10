@@ -166,6 +166,6 @@ DareFightingICE-7.0beta/log/
 DareFightingICE-7.0beta/log/**/*
 python_script_log.txt
 test.sh
-DareFightingICE_CODE/
-DareFightingICE_CODE/**/*
 resulttable
+game_process.pid
+prompt.txt
