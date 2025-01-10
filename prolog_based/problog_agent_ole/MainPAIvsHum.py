@@ -6,7 +6,7 @@ from typing_extensions import Annotated, Optional
 from pyftg.socket.aio.gateway import Gateway
 from pyftg.utils.logging import DEBUG, set_logging
 
-from .ProblogAgent import ProblogAgent
+from ProblogAgent import ProblogAgent
 
 app = typer.Typer(pretty_exceptions_enable=False)
 

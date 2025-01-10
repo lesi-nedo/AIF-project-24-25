@@ -35,9 +35,9 @@ sys.path.append(os.path.join(project_root, 'prolog_based', 'problog_agent_ole'))
 
 print(f"Project root: {project_root}")
 
-from .display_thread import DisplayThread
-from .inference_manager import ApproximateInference
-from .cache_manager import ProblogCache
+from display_thread import DisplayThread
+from inference_manager import ApproximateInference
+from cache_manager import ProblogCache
 from typing import Dict
 
 from IPython import display
@@ -71,7 +71,6 @@ logger = logging.getLogger(__name__)
 problog_logger = logging.getLogger("problog")
 problog_logger.setLevel(logging.ERROR)
 
-logger.info("Working Path: {}".format(os.getcwd()))
 class ProblogAgent(AIInterface):
     def __init__(self, k_best_value: int = 5, plot_scenes: bool = False):
         # time.sleep(20)
@@ -307,7 +306,7 @@ class ProblogAgent(AIInterface):
         except FileNotFoundError:
             logger.error("File not found")
             raise 
-
+        
         self._init_vars()
         (f"ProblogAgent initialized")
         
