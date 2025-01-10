@@ -366,7 +366,7 @@ EXCLUDE_PATTERN="(__pycache__|\.git|\.vscode|\.idea|\.pytest_cache|\.mypy_cache)
 
 sleep 3
 # Get process IDs from environment variables if they exist
-GAME_PID=$(pgrep -f "java.*FightingICE.jar.*Main")
+GAME_PID=$(pgrep -f "java.*Main.*--pyftg-mode.*")
 PYTHON_PID=$(pgrep -f "python .*[Mm]ain.*\.py")
 
 

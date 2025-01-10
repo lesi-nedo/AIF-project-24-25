@@ -6,7 +6,8 @@
 agent(me).
 agent(opponent).
 % add is facing
-
+% use hit area, use velocity and direction to predict the next position
+% explore the game to see what can be used
 
 0.40::possible_state(stand).
 0.25::possible_state(crouch).
@@ -52,13 +53,15 @@ is_stand(A, S) :- state(A, S, _, _), S = stand.
 0.001::m_action(for_jump).       % Approach from air
 0.001::m_action(back_jump).      % Retreat and avoid
 
-forward_move(A) :- A=dash, m_action(A); A=for_jump, m_action(A).
-backward_move(A) :- A=back_step; A=back_jump.
+forward_move(A) :- A=dash; A=for_jump.
+backward_move(A) :- A=back_step;  A=back_jump.
 
 % Defense reactions (sum to 1)
 0.4::d_action(stand_guard).    % Most common block
 0.3::d_action(crouch_guard).   % Low block
-0.2::d_action(air_guard).      % Air defense  
+0.2::d_action(air_guard).      % Air defense
+
+defend(A) :- A=stand_guard; A=crouch_guard; A=air_guard.
 
 % Health state probabilities
 0.1::health(Agent,critical, X) :- agent(Agent), health_value(Agent, X), X < 100.
@@ -213,8 +216,8 @@ action_utility(Action, FinalUtility) :-
     ).
 
 % Sort actions by utility
-find_my_best_action(BestAction, ActionList, MaxDistBAction) :-
-    findall(Utility-Action-MaxDistBAction, (
+find_my_best_action(BestAction, ActionList,Can) :-
+    findall(Utility-Action-Can, (
         % Distance check
         curr_pos(me, X1, _),
         curr_pos(opponent, X2, _),
@@ -224,50 +227,55 @@ find_my_best_action(BestAction, ActionList, MaxDistBAction) :-
         min_distance_to_hit(Action, MinD),
         energy_cost(Action, EC),
         max_distance_b_action(MaxDistBAction),
+        facing_dir(me, FDir), 
+        facing_dir(opponent, OFDir),
+        hbox(me, LboxM, RboxM, TboxM, BboxM),
+        hbox(opponent, LboxO, RboxO, TboxO, BboxO),
         (
-            (D > MaxDistBAction,
-                ((health(me, critical, _),
-                    backward_move(Action),
-                    Utility is 0.0
-                );
-                (\+health(me, critical, _),
-                    forward_move(Action),
-                    Utility is 0.0
-                ))
+            (FDir \= OFDir, (s_action(Action); b_action(Action); m_action(Action)), (   
+                can_hit(
+                    FDir, LboxM, RboxM, TboxM, BboxM, 
+                    LboxO, RboxO, TboxO, BboxO, E, Can),
+                (
+                    (Can = 0,
+                        ((health(me, critical, _),
+                            backward_move(Action),
+                            Utility is 0.0
+                        );
+                        (\+health(me, critical, _),
+                            forward_move(Action),
+                            Utility is 0.0
+                        ))
+                    );
+                    (Can = 1,
+                        ((EC =< E,
+                            (s_action(Action),
+                            action_utility(Action, Utility))
+                        );
+                        (b_action(Action),
+                            action_utility(Action, Utility))  
+                        )
+                    )
+                )
+              )
             );
-            (D =< MaxDistBAction,
-                ((EC =< E, 
-                    D >= MinD,
-                    (s_action(Action),
-                    action_utility(Action, Utility))
-                );
-                (D =< MaxD, D >= MinD,
-                    (b_action(Action),
-                    action_utility(Action, Utility))  
-                ); 
-                (D < MinD,
-                    (Action = crouch_fb,
-                    Utility is 0.2)
-                ); 
-                (D >= MaxD,
-                    (Action = dash, Utility is 0.0)
-                )
-                )
-            
+            FDir = OFDir, (
+                Action = defend(Action),
+                Utility is 0.0
             )
-
         )
+        
     ), ActionList),
     (
             (sort(ActionList, SortedList),
-            last(SortedList, _-BestAction-MaxDistBAction))
+            last(SortedList, _-BestAction-Can))
     ).
 
 
 % Query
-get_my_best_action(BestAction, ActionList, D) :- find_my_best_action(BestAction, ActionList,D).
+get_my_best_action(BestAction, ActionList,FDir) :- find_my_best_action(BestAction, ActionList,FDir).
 
-query(get_my_best_action(BestAction, ActionList, D)).
+query(get_my_best_action(BestAction, ActionList,FDir)).
 
 
 

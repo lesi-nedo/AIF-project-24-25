@@ -1,11 +1,46 @@
 import logging
+import queue
+import numpy as np
 import typer
 import time
 import random
+import os
+import sys
+import matplotlib.pyplot as plt
+import cv2
+import matplotlib
+import logging
 
-from cache_manager import ProblogCache
+logging.getLogger().setLevel(logging.WARNING)
+# Suppress PIL debug logging
+logging.getLogger('PIL').setLevel(logging.WARNING)
+
+# Suppress matplotlib font manager debug logging
+logging.getLogger('matplotlib.font_manager').setLevel(logging.WARNING)
+
+# Suppress matplotlib debug logging
+logging.getLogger('matplotlib').setLevel(logging.WARNING)
+
+# Suppress debug messages for PNG handling
+logging.getLogger('PIL.PngImagePlugin').setLevel(logging.WARNING)
+matplotlib.use('Agg') 
+
+
+# Get the absolute path of the project root directory 
+project_root = os.path.abspath(os.path.join(os.getcwd()))
+
+# Add both the root and problog agent directory to Python path
+sys.path.append(project_root)
+sys.path.append(os.path.join(project_root, 'prolog_based', 'problog_agent_ole'))
+
+print(f"Project root: {project_root}")
+
+from .display_thread import DisplayThread
+from .inference_manager import ApproximateInference
+from .cache_manager import ProblogCache
 from typing import Dict
-from inference_manager import ApproximateInference
+
+from IPython import display
 
 from pyftg import (
     AIInterface,
@@ -31,17 +66,19 @@ from problog import get_evaluatable
 
 
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 problog_logger = logging.getLogger("problog")
 problog_logger.setLevel(logging.ERROR)
 
 
 class ProblogAgent(AIInterface):
-    def __init__(self, k_best_value: int = 5):
-        time.sleep(20)
+    def __init__(self, k_best_value: int = 5, plot_scenes: bool = False):
+        # time.sleep(20)
         super().__init__()
-        self.blind_flag = True
+        self.blind_flag = False
+        self.width = 960
+        self.height = 640
         self.cache = ProblogCache(maxsize=256)  # Adjust size as needed
         self.inference = ApproximateInference(max_samples=1000)
         self.play_number: bool
@@ -54,7 +91,7 @@ class ProblogAgent(AIInterface):
         self.opponent_state = [Action.STAND]
         self.my_curr_pos = [(0, 0)]
         self.opponent_curr_pos = [(0, 0)]
-
+        self.plot_scenes = plot_scenes
         self.cc: CommandCenter
         self.key: Key
         self.my_character_data: CharacterData
@@ -76,12 +113,41 @@ class ProblogAgent(AIInterface):
         self.kb_rules_file_name = "KB_V1.pl"
         self.kb_path_rules = self.prefix + self.kb_rules_file_name
         self.exec_action = ["dash"]
+        self.my_hboxes = []
+        self.opponent_hboxes = []
+        self.screen_data_raw = None
+        self.echo = typer.echo
+            # Initialize plot on first frame if not already done
+        if self.plot_scenes:
+            self._init_plots()
+            self.echo = self.display_thread.add_log
 
         self.default_positions = {
             0: (720, 537),
             1: (240, 537)
         }
-
+        self.default_hbox = {
+            1: {
+                "left": 200,
+                "right": 260,
+                "top": 435,
+                "bottom":640
+            },
+            0: {
+                "left": 700,
+                "right": 740,
+                "top": 435,
+                "bottom": 640
+            }
+        }
+        self.default_dir = {
+            0: -1,
+            1: 1
+        }
+        self.direction = {
+                    1: 1,
+                    0: -1
+                }
         self.counters = {
             'me': {
                 'stand': 0,
@@ -143,10 +209,12 @@ class ProblogAgent(AIInterface):
         self.my_actions_type: list[str] = ["movement"]
         self.my_state = [Action.STAND]
         self.opponent_state = [Action.STAND]
+        self.my_hboxes.append(self.default_hbox.get(self.my_number))
+        self.opponent_hboxes.append(self.default_hbox.get(self.opponent_number))
 
         self.my_curr_pos = [self.default_positions.get(self.my_number)]
         self.opponent_curr_pos = [self.default_positions.get(self.opponent_number)]
-
+        
 
         self.db_enriched = self.db_org.extend()
 
@@ -165,8 +233,16 @@ class ProblogAgent(AIInterface):
         me_prev_action = f"prev_action_type(me, movement).\n"
         opponent_prev_action = f"prev_action_type(opponent, movement).\n"
 
-        me_curr_pos = f"curr_pos(me, {self.my_curr_pos[0][0]}, {self.my_curr_pos[0][1]}).\n"
-        opponent_curr_pos = f"curr_pos(opponent, {self.opponent_curr_pos[0][0]}, {self.opponent_curr_pos[0][1]}).\n"
+        me_curr_pos = f"0.9::curr_pos(me, {self.my_curr_pos[0][0]}, {self.my_curr_pos[0][1]}).\n"
+        opponent_curr_pos = f"0.9::curr_pos(opponent, {self.opponent_curr_pos[0][0]}, {self.opponent_curr_pos[0][1]}).\n"
+
+        me_facing_dir = f"0.9::facing_dir(me, {self.default_dir.get(self.my_number)}).\n"
+      
+        opponent_facing_dir = f"0.9::facing_dir(opponent, {self.default_dir.get(self.opponent_number)}).\n"
+
+        me_hboxes = f"0.95::hbox(me, {self.my_hboxes[0]['left']}, {self.my_hboxes[0]['right']}, {self.my_hboxes[0]['top']}, {self.my_hboxes[0]['bottom']}).\n"
+        opponent_hboxes = f"0.95::hbox(opponent, {self.opponent_hboxes[0]['left']}, {self.opponent_hboxes[0]['right']}, {self.opponent_hboxes[0]['top']}, {self.opponent_hboxes[0]['bottom']}).\n"
+
         self.exec_action = ["dash"]
         self.count_frames = 0
 
@@ -175,7 +251,7 @@ class ProblogAgent(AIInterface):
             me_str_hp, me_str_energy, opponent_str_hp, opponent_str_energy, count_state_me, 
             count_total_states_me, count_state_opponent, count_total_states_opponent,
             me_prev_hp, me_prev_energy, opponent_prev_hp, opponent_prev_energy, me_prev_action, opponent_prev_action, 
-            me_curr_pos, opponent_curr_pos])
+            me_curr_pos, opponent_curr_pos, me_facing_dir, opponent_facing_dir, me_hboxes, opponent_hboxes])
         for statement in PrologString(str_concat):
             self.db_enriched += statement
             typer.echo(f"Statement: {statement}")
@@ -214,7 +290,9 @@ class ProblogAgent(AIInterface):
         self.my_hps = [self.game_data.max_hps[self.my_number], self.game_data.max_hps[self.my_number]]
         self.opponent_hps = [self.game_data.max_hps[self.opponent_number], self.game_data.max_hps[self.opponent_number]]
 
-
+        logger.info(f"Is blind: {self.is_blind()}")
+        if self.is_blind():
+            exit(1)
         if not SDD.is_available():
             raise ImportError("SDD package not available, are running on Windows?, then not supported. If linux, try to install with 'pip install problog[sdd]'")
         
@@ -231,7 +309,7 @@ class ProblogAgent(AIInterface):
             raise 
 
         self._init_vars()
-        typer.echo(f"ProblogAgent initialized")
+        (f"ProblogAgent initialized")
         
     def get_non_delay_frame_data(self, frame_data: FrameData):
         pass
@@ -311,51 +389,53 @@ class ProblogAgent(AIInterface):
     def select_action_from_problog_results(self, result):
         """Selects an action probabilistically from ProbLog k-best results."""
         try:
-            # typer.echo(f"Result: {result}")
+            # self.echo(f"Result: {result}")
             # Check if result exists and is iterable
             if not result or not hasattr(result, 'items'):
-                typer.echo(f"Result: {result}")
+                self.echo(f"Result: {result}")
                 logger.warning("Invalid result format from ProbLog")
                 return None
                 
             # Extract valid actions and their probabilities
-            action_probs = []
+            action_probs_dit = {}
             for res, prob_tuple in result.items():
                 try:
                     # Handle different probability formats
                     prob = prob_tuple[0] if isinstance(prob_tuple, tuple) else prob_tuple
 
-                    # typer.echo(f"Type: {type(res)}")
+                    # self.echo(f"Type: {type(res)}")
                     # if hasattr(res, 'args'):
-                    #     typer.echo(f"Args: {res.args}")
-                    # typer.echo(f"Type args: {type(res.args[1])}")
+                    #     self.echo(f"Args: {res.args}")
+                    # self.echo(f"Type args: {type(res.args[1])}")
                     # Get actions   list from result
                     action = res.args[0] if hasattr(res, 'args') else res
                     if isinstance(action, Term):
                         action = term2str(action)
-                        action_probs.append((action, float(prob)))
+                        if action not in action_probs_dit:
+                            action_probs_dit[action] = float(prob)
+                        else:
+                            action_probs_dit[action] += float(prob)
                     else:
                         action = term2list(action)
                         return random.choice(action)
                     
-
-                    
-                    if action:  # Skip empty lists
-                        action_probs.append((action, float(prob)))
                 except (AttributeError, IndexError, TypeError) as e:
-                    typer.echo(f"Error processing result item: {e}")
+                    self.echo(f"Error processing result item: {e}")
                     continue
             
-            if not action_probs:
+
+            action_probs_list = [(action, prob) for action, prob in action_probs_dit.items()]
+            if not action_probs_list:
                 return None
             
-            
+            # self.echo(f"\nAction probs: {action_probs_list}")
             # Choose action list based on probabilities
-            actions_list, probs = zip(*action_probs)
+            actions_list, probs = zip(*action_probs_list)
             return random.choices(actions_list, weights=probs, k=1)[0]
         
         except Exception as e:
-            typer.echo(f"Error in select_action_from_problog_results: {e}")
+            self.echo(f"Result: {result}")
+            self.echo(f"Error in select_action_from_problog_results: {e}")
             pass
             # exit(1)
 
@@ -378,8 +458,31 @@ class ProblogAgent(AIInterface):
             self.my_actions_type.append(self._get_type_action(self.my_character_data.action.value))
             self.my_state.append(self.my_character_data.state)
             self.opponent_state.append(self.opponent_character_data.state)
-            self.my_curr_pos.append((self.my_character_data.x, self.my_character_data.y))
-            self.opponent_curr_pos.append((self.opponent_character_data.x, self.opponent_character_data.y))
+            self.my_hboxes.append(
+                {
+                    "left": self.my_character_data.left,
+                    "right": self.my_character_data.right,
+                    "top": self.my_character_data.top,
+                    "bottom": self.my_character_data.bottom
+                }
+            )
+            self.opponent_hboxes.append(
+                {
+                    "left": self.opponent_character_data.left,
+                    "right": self.opponent_character_data.right,
+                    "top": self.opponent_character_data.top,
+                    "bottom": self.opponent_character_data.bottom
+                }
+            )
+
+            px = self.my_character_data.speed_x
+            py = self.my_character_data.speed_y
+
+            self.my_curr_pos.append((self.my_character_data.x+px, self.my_character_data.y + py))
+
+            px = self.opponent_character_data.speed_x
+            py = self.opponent_character_data.speed_y
+            self.opponent_curr_pos.append((self.opponent_character_data.x+px, self.opponent_character_data.y+py))
 
             diff_my_energy = abs(self.my_energy[-1] - self.my_character_data.energy)
             diff_opponent_hp = abs(self.opponent_hps[-1] - self.opponent_character_data.hp)
@@ -405,21 +508,26 @@ class ProblogAgent(AIInterface):
             
 
             action = term2str(action).upper()
-            typer.echo(f"Action to Take: {action}")
+            self.echo(f"Action to Take: {action}")
             self.exec_action.append(action)
             if action:
-                self.cc.command_call(self.exec_action[-2])
+                self.cc.command_call(self.exec_action[-1])
+
+            # if self.frame_data.current_frame_number % 40 == 0:
+            #     logger.info(f"Screen data: {self.screen_data.display_bytes}")
             
 
             # if self.frame_data.current_frame_number % 37 == 0:
-            #     typer.echo(f"Action: {result}")
+            #     # self.echo(f"Action: {result}")
+            #     # self.echo(f"Me: {self.my_character_data.attack_data}")
+            #     self.echo(f"Attack data: {self.my_character_data.to_dict()}")
 
-                # typer.echo(f"Player state: {self.my_character_data.state.value}")
+                # self.echo(f"Player state: {self.my_character_data.state.value}")
                 # pass
                 
                 
                 # for ev in  self.sdd_formula.evidence():
-                #     typer.echo(f"Evidence: {ev}")
+                #     self.echo(f"Evidence: {ev}")
                 
            
 
@@ -434,7 +542,7 @@ class ProblogAgent(AIInterface):
             #     self.enough = True
 
             #     self.cc.command_call(Action.STAND_GUARD.value.upper())
-            #     # typer.echo(f"Player energy: {self.my_character_data.energy} --- here: {self.here}")
+            #     # self.echo(f"Player energy: {self.my_character_data.energy} --- here: {self.here}")
 
 
             #     self.here += 1
@@ -442,7 +550,7 @@ class ProblogAgent(AIInterface):
             #     if self.frame_data.current_frame_number % 47 == 0:
             #         self.cc.command_call(Action.NEUTRAL.value.upper())
                 
-            #     # typer.echo(f"Diff distance: {self.my_character_data.x - self.opponent_character_data.x}")
+            #     # self.echo(f"Diff distance: {self.my_character_data.x - self.opponent_character_data.x}")
 
                 
             # else:
@@ -452,18 +560,18 @@ class ProblogAgent(AIInterface):
             
             # if diff_opponent_hp > 0 and self.enough:
             #     self.sent = False
-            #     typer.echo(f"Diff distance: {self.my_character_data.x - self.opponent_character_data.x}")
+            #     self.echo(f"Diff distance: {self.my_character_data.x - self.opponent_character_data.x}")
             #     self.count_frames = 0
             #     self.here = 0
 
 
             
-            # typer.echo(f"Player hp: {self.opponent_character_data.hp}")
+            # self.echo(f"Player hp: {self.opponent_character_data.hp}")
 
             # if self.frame_data.current_frame_number % 3 == 0:
                
-            #     typer.echo(f"Player: {self.frame_data.current_frame_number}")
-            #     typer.echo(f"Frame: {self.frame_data.front}")
+            #     self.echo(f"Player: {self.frame_data.current_frame_number}")
+            #     self.echo(f"Frame: {self.frame_data.front}")
             self.my_actions.append(self.my_character_data.action) 
             self.opponent_hps.append(self.opponent_character_data.hp)
             self.my_hps.append(self.my_character_data.hp)
@@ -523,7 +631,16 @@ class ProblogAgent(AIInterface):
     
     def _get_clause_curr_pos(self, player: str):
         curr_pos = getattr(self, f"{self.name_conv.get(player)}_curr_pos")[-1]
-        return f"curr_pos({player}, {curr_pos[0]}, {curr_pos[1]}).\n"
+        return f"0.9::curr_pos({player}, {curr_pos[0]}, {curr_pos[1]}).\n"
+    
+    def _get_facing_dir(self, player: str):
+        curr_facing_dir = getattr(self, f"{self.name_conv.get(player)}_character_data").front
+        curr_facing_dir = self.direction.get(int(curr_facing_dir))
+        return f"0.9::facing_dir({player}, {curr_facing_dir}).\n"
+    
+    def _get_hbox_clause(self, player: str):
+        hbox = getattr(self, f"{self.name_conv.get(player)}_hboxes")[-1]
+        return f"0.95::hbox({player}, {hbox['left']}, {hbox['right']}, {hbox['top']}, {hbox['bottom']}).\n"
         
     def _check_changed(self,):
         to_ret = []
@@ -557,18 +674,25 @@ class ProblogAgent(AIInterface):
         opponent_curr_pos = self._get_clause_curr_pos("opponent")
         my_prev_action_type = self._get_clause_prev_action("me")
         opponent_prev_action_type = self._get_clause_prev_action("opponent")
+        my_facing_dir = self._get_facing_dir("me")
+        opponent_facing_dir = self._get_facing_dir("opponent")
+        my_hbox = self._get_hbox_clause("me")
+        opponent_hbox = self._get_hbox_clause("opponent")
 
         
         concat_str = "\n".join([
             my_str_hp, my_str_energy, my_state_clause, my_total_states_clause, 
-            my_prev_hp, my_prev_energy, my_curr_pos, my_prev_action_type
+            my_prev_hp, my_prev_energy, my_curr_pos, my_prev_action_type, my_facing_dir,
+            my_hbox
+            
         ])
         for statement in PrologString(concat_str):
             db += statement
 
         concat_str = "\n".join([
             opponent_str_hp, opponent_str_energy, opponent_state_clause, opponent_total_states_clause, 
-            opponent_prev_hp, opponent_prev_energy, opponent_curr_pos, opponent_prev_action_type
+            opponent_prev_hp, opponent_prev_energy, opponent_curr_pos, opponent_prev_action_type, opponent_facing_dir,
+            opponent_hbox
         ])
         for statement in PrologString(concat_str):
             db += statement
@@ -576,7 +700,9 @@ class ProblogAgent(AIInterface):
             
         return db
         
-        
+    
+   
+
     def _increment_counter(self, agent: str, state: str) -> None:
         self.counters[agent][state] += 1
         self.counters[agent]['total'] += 1
@@ -621,7 +747,7 @@ class ProblogAgent(AIInterface):
       
         type = attack_actions.get(action, "defense")
         if type is None:
-            typer.echo(f"Action type None: {action}")
+            self.echo(f"Action type None: {action}")
         return type
 
     def round_end(self, round_result: RoundResult):
@@ -629,7 +755,66 @@ class ProblogAgent(AIInterface):
         self._init_vars()
         logger.info(f"round end: {round_result}")
 
+    def get_screen_data(self, screen_data: ScreenData):
+        if self.plot_scenes and hasattr(self, 'display_thread') and screen_data.display_bytes:
+            try:
+                if not screen_data or not screen_data.display_bytes:
+                    logger.debug("No display bytes available")
+                    return
+                    
+                logger.debug(f"Queue size before put: {self.display_thread.queue.qsize()}")
+                self.display_thread.queue.put_nowait(screen_data.display_bytes)
+                logger.debug(f"Successfully queued screen data")
+                logger.debug(f"Queue size after put: {self.display_thread.queue.qsize()}")
+                
+            except queue.Full:
+                logger.warning("Display queue is full, skipping frame")
+            except Exception as e:
+                logger.error(f"Error queueing screen data: {e}")
+            
+        self.screen_data_raw = screen_data
+
+    def _init_plots(self):
+        if self.plot_scenes:
+            self.display_thread = DisplayThread(self.width, self.height)
+            self.display_thread.start()
+            # # Use inline backend for Jupyter
+            # matplotlib.use('module://ipykernel.pylab.backend_inline')
+            
+            # # Enable interactive mode
+            # plt.ioff()
+            
+            # self.fig, self.ax = plt.subplots(1, 1, figsize=(10, 10))
+            # self.ax.set_xlim(0, self.width)
+            # self.ax.set_ylim(0, self.height)
+            # self.ax.axis("off")
+            # self.ax.set_aspect("equal")
+            # self.ax.set_title("Game Scene")
+            # self.img_plot = self.ax.imshow(
+            #     np.zeros((self.height, self.width, 3), dtype=np.uint8)
+            # )
+
+            # # Draw and flush events
+            # self.fig.canvas.draw()
+            # self.fig.canvas.flush_events()
+            
+            
+            # # Clear any existing displays
+            # plt.close('all')
+            
+            # # Display in Jupyter
+            # display.clear_output(wait=True)
+            # display.display(self.fig)
+            
+            
+            # # Small pause to ensure display
+            # plt.pause(0.001)
+
+
     def game_end(self):
         pass
     def close(self):
-        pass
+        logger.info("Closing ProblogAgent")
+        if hasattr(self, 'display_thread'):
+            self.display_thread.stop()
+            self.display_thread.join()

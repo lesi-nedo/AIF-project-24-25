@@ -1,9 +1,9 @@
 #!/bin/bash
 
 STARTING_DIR=$(pwd)
-GAME_SCRIPT="./run-linux-amd64.sh"
+GAME_SCRIPT="./compile_run_linux.sh"
 # Directory for the game environment
-GAME_DIR="DareFightingICE-7.0beta"
+GAME_DIR="DareFightingICE_CODE"
 STARTING_DIR=$(pwd)
 FILE="$1"
 PREFIX_FILE="${FILE##*.}"
@@ -129,7 +129,9 @@ $GAME_SCRIPT >/dev/null 2>&1 &
 
 sleep 2
 
-GAME_PID=$(pgrep -f "java.*FightingICE.jar.*Main")
+echo "Game started"
+
+GAME_PID=$(pgrep -f "java.*Main.*--pyftg-mode.*")
 echo "Game PID: $GAME_PID"
 
 # Small delay to ensure game starts
