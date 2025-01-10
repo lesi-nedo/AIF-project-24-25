@@ -1,12 +1,21 @@
 import logging
+from pyftg.aiinterface.stream_interface import StreamInterface
 
-from pyftg import (AIInterface, AudioData, CommandCenter, FrameData, GameData,
-                   Key, RoundResult, ScreenData)
+from pyftg import (
+    AIInterface,
+    AudioData,
+    CommandCenter,
+    FrameData,
+    GameData,
+    Key,
+    RoundResult,
+    ScreenData,
+)
 
 logger = logging.getLogger(__name__)
 
 
-class DisplayInfo(AIInterface):
+class DisplayInfo(StreamInterface):
     def __init__(self):
         self.blind_flag = False
         self.width = 96
@@ -26,24 +35,24 @@ class DisplayInfo(AIInterface):
 
     def get_non_delay_frame_data(self, frame_data: FrameData):
         pass
-        
+
     def input(self):
         return self.input_key
-        
+
     def get_information(self, frame_data: FrameData, is_control: bool):
         self.frame_data = frame_data
         self.cc.set_frame_data(frame_data, self.player)
-    
+
     def get_screen_data(self, screen_data: ScreenData):
         self.screen_data = screen_data
-    
+
     def get_audio_data(self, audio_data: AudioData):
         pass
-        
+
     def processing(self):
         if self.frame_data.empty_flag or self.frame_data.current_frame_number <= 0:
             return
-  
+
         if self.cc.get_skill_flag():
             self.input_key = self.cc.get_skill_key()
             return
@@ -53,11 +62,13 @@ class DisplayInfo(AIInterface):
 
         # calculate the distance
         try:
+            print(self.screen_data.display_bytes)
             distance = self.calculate_distance(self.screen_data.display_bytes)
-        except:
+        except Exception as e:
+            print(f"error: {e}")
             distance = 0
         if distance == -1:
-            self.cc.command_call("STAND_A") # default action
+            self.cc.command_call("STAND_A")  # default action
         else:
             close = 80 * self.width / 960
             far = 200 * self.width / 960
@@ -68,7 +79,7 @@ class DisplayInfo(AIInterface):
                 self.cc.command_call("STAND_FB")
             else:
                 self.cc.command_call("STAND_D_DF_FA")
-                        
+
     def calculate_distance(self, display_buffer: bytes):
         for y in reversed(range(self.height)):
             # when searching for the same row is over, reset each data
@@ -90,9 +101,9 @@ class DisplayInfo(AIInterface):
 
     def round_end(self, round_result: RoundResult):
         logger.info(f"round end: {round_result}")
-    
+
     def game_end(self):
         logger.info("game end")
-        
+
     def close(self):
         pass
