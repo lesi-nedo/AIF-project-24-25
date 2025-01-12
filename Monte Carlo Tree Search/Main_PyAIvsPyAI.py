@@ -1,4 +1,7 @@
 import asyncio
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
 import typer
 from typing_extensions import Annotated, Optional
@@ -7,7 +10,8 @@ from KickAI import KickAI
 from MctsAi import MctsAi
 from pyftg.socket.aio.gateway import Gateway
 from pyftg.utils.logging import DEBUG, set_logging
-
+from prolog_based.problog_agent_ole.ProblogAgent import ProblogAgent
+from prolog_based.prolog_agent_simo.PrologAI import PrologAI
 app = typer.Typer(pretty_exceptions_enable=False)
 
 
@@ -21,12 +25,16 @@ async def start_process(
 
     gateway = Gateway(host, port)
     agent1 = KickAI()
+    agent1 = ProblogAgent()
+    agent1 = PrologAI()
     agent2 = MctsAi()
     gateway.register_ai("MctsAi", agent2)
     if not keyboard:
         gateway.register_ai("KickAI", agent1)
+        # gateway.register_ai("ProblogAgent", agent1)
+        gateway.register_ai("PrologAI", agent1)
         await gateway.run_game(
-            [character, character], ["KickAI", "MctsAi"], game_num
+            [character, character], ["PrologAI", "MctsAi"], game_num
         )
     else:
         await gateway.run_game(
