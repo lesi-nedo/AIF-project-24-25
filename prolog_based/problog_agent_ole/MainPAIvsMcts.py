@@ -1,6 +1,10 @@
 import asyncio
 import typer
+import sys
+import os
 
+sys.path.append(os.path.join(os.path.dirname(__file__), "prolog_based/prolog_agent_simo"))
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from typing_extensions import Annotated, Optional
 from pyftg.socket.aio.gateway import Gateway
@@ -9,14 +13,30 @@ from pyftg.utils.logging import DEBUG, set_logging
 from ProblogAgent import ProblogAgent
 
 app = typer.Typer(pretty_exceptions_enable=False)
-
+from prolog_based.prolog_agent_simo.PrologAI import PrologAI
+from minimax.MinimaxAI import MinimaxAI
 
 async def start_process(host:str , port: int, character: str = "ZEN", game_number: int = 1, plot_scenes: bool = False):
     gateway = Gateway(host, port)
     a2 = ProblogAgent(plot_scenes=plot_scenes)
+    a1 = PrologAI()
     gateway.register_ai("ProblogAgent", a2)
-    typer.echo(f"Running game Human vs {a2.name()}")
-    await gateway.run_game([character, character], ["MctsAi23i","ProblogAgent"], game_number)
+    gateway.register_ai("PrologAI", a1)
+    name_prolog = "PrologAI"
+    await gateway.run_game([character, character], [name_prolog,"ProblogAgent"], game_number)
+
+    
+    # a1 = MinimaxAI()
+    # gateway.register_ai("MinimaxAI", a1)
+    # name_minimax = "MinimaxAI"
+    # await gateway.run_game([character, character], [name_minimax,"ProblogAgent"], game_number)
+
+    # name = "MctsAi23i"
+    # await gateway.run_game([character, character], [name,"ProblogAgent"], game_number)
+
+    
+    
+
 
 
 @app.command()

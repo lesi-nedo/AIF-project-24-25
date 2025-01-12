@@ -1,5 +1,13 @@
 import logging
 import random
+import sys
+import os
+sys.path.insert(0, "prolog_based/prolog_agent_simo")
+
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
 
 from utility import Utility
 from pyswip import Prolog
@@ -54,7 +62,7 @@ class KB():
 
 
 Kb = KB()
-Kb.kb.consult("kb.pl")
+Kb.kb.consult(os.path.join(CURRENT_DIR, "kb.pl"))
 
 class PrologAI(AIInterface):
     def __init__(self):
