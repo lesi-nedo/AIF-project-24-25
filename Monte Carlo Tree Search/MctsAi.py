@@ -15,15 +15,19 @@ from mcts.searcher.mcts import MCTS
 from FighterState import FighterState
 import math
 from mcts.searcher.mcts import TreeNode
+from display_thread import DisplayThread
+import queue
+
 
 logger = logging.getLogger(__name__)
 logger.propagate = True
 
 
 class MctsAi(AIInterface):
-    def __init__(self):
+    def __init__(self, plot_scenes: bool = False):
         super().__init__()
         self.blind_flag = True
+        self.plot_scenes = plot_scenes
 
     def name(self) -> str:
         return self.__class__.__name__
@@ -55,7 +59,26 @@ class MctsAi(AIInterface):
         self.othercharacter_data = self.frame_data.get_character(self.otherplayer)
 
     def get_screen_data(self, screen_data: ScreenData):
+        if self.plot_scenes and hasattr(self, 'display_thread') and screen_data.display_bytes:
+            try:
+                if not screen_data or not screen_data.display_bytes:
+                    logger.debug("No display bytes available")
+                    return
+                if self.display_thread.queue.full():
+                    return
+                self.display_thread.queue.pyt_nowait(screen_data.display_bytes)
+
+            except queue.Full:
+                pass
+            except Exception as e:
+                logger.error(f"Error queueing screen data: {e}")
+
         self.screen_data = screen_data
+
+    def _init_plots(self):
+        if self.plot_scenes:
+            self.display_thread = DisplayThread(self.width, self.height)
+            self.display_thread.start()
 
     def get_audio_data(self, audio_data: AudioData):
         self.audio_data = audio_data
@@ -71,12 +94,12 @@ class MctsAi(AIInterface):
             self.cc.skill_cancel()
             initial_state = FighterState(self.game_data, self.cc, self.mycharacter_data, self.othercharacter_data, self.player)
             # Ora inizializzo il searcher con tutti i parametri impostati (tempo limite; iterazioni massime; valore della costante c)
-            searcher = MCTS(timeLimit=400, explorationConstant=2)
+            searcher = MCTS(iteration_limit=50, explorationConstant=5)
             try:
                 best_action = searcher.search(initialState=initial_state)
                 #self.cc.command_call(best_action)
                 #logger.info("AZIONE MIGLIORE: "+str(best_action))
-                self.cc.command_call(str(best_action).upper())
+                self.cc.command_call(str(best_action.action_name).upper())
             except Exception as e:
                 tb = sys.exc_info()[-1]
                 stk = traceback.extract_tb(tb, 1)

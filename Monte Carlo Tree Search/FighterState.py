@@ -5,6 +5,7 @@ from pyftg.models.character_data import CharacterData
 import logging
 from pyftg.models.enums.action import Action as Act
 import random
+import math
 
 from copy import deepcopy, copy
 
@@ -15,18 +16,20 @@ logger.propagate = True
 class Action(BaseAction):
         def __init__(self, action_name):
             self.action_name = action_name
+            self.attack_dmg, self.energy, self.vel_x, self.vel_y, self.given_energy = extract_attack_info(self.action_name)
+
 
         def __str__(self):
-            return str((self.action_name))
+            return str((self.action_name, self.attack_dmg, self.energy, self.vel_x, self.vel_y, self.given_energy))
 
         def __repr__(self):
             return str(self)
 
         def __eq__(self, other):
-            return self.__class__ == other.__class__ and self.action_name == other.action_name
+            return self.__class__ == other.__class__ and self.action_name == other.action_name and self.attack_dmg == other.attack_dmg and self.energy == other.energy and self.vel_x == other.vel_x and self.vel_y == other.vel_y and self.given_energy == other.given_energy
 
         def __hash__(self):
-            return hash((self.action_name))
+            return hash((self.action_name, self.attack_dmg, self.energy, self.vel_x, self.vel_y, self.given_energy))
 
 
 def extract_attack_info(name: str):
@@ -129,18 +132,28 @@ class FighterState(BaseState):
         self.delta_opp_hp = 0
         self.delta_energy = 0
         self.multiplier = 1
+        self.index = 0
+        self.current_player = 1
 
-        if current_player == 0:
-            self.current_player = -1
-        else:
-            self.current_player = 1
         self.terminate = False
         
     def get_current_player(self) -> int:
         return self.current_player
         
     def get_possible_actions(self):
-        possible_actions = [Action(Act.FORWARD_WALK._value_), Action(Act.DASH._value_), Action(Act.BACK_STEP._value_), Action(Act.CROUCH._value_), Action(Act.JUMP._value_),
+        if self.mycharacter_data.energy >= 150:
+            possible_actions = [Action(Act.STAND_D_DF_FC._value_),Action(Act.FORWARD_WALK._value_), Action(Act.DASH._value_), Action(Act.BACK_STEP._value_), Action(Act.CROUCH._value_), Action(Act.JUMP._value_),
+                            Action(Act.FOR_JUMP._value_), Action(Act.BACK_JUMP._value_), Action(Act.STAND_GUARD._value_), Action(Act.CROUCH_GUARD._value_),
+                            Action(Act.AIR_GUARD._value_), Action(Act.THROW_A._value_), Action(Act.THROW_B._value_), Action(Act.STAND_A._value_), Action(Act.STAND_B._value_),
+                            Action(Act.CROUCH_A._value_), Action(Act.CROUCH_B._value_), Action(Act.AIR_A._value_), Action(Act.AIR_B._value_), Action(Act.AIR_DA._value_),
+                            Action(Act.AIR_DB._value_), Action(Act.STAND_FA._value_), Action(Act.STAND_FB._value_), Action(Act.CROUCH_FA._value_),
+                            Action(Act.CROUCH_FB._value_), Action(Act.AIR_FA._value_), Action(Act.AIR_FB._value_), Action(Act.AIR_UA._value_), Action(Act.AIR_UB._value_),
+                            Action(Act.STAND_D_DF_FA._value_), Action(Act.STAND_D_DF_FB._value_), Action(Act.STAND_F_D_DFA._value_), Action(Act.STAND_F_D_DFB._value_),
+                            Action(Act.STAND_D_DB_BA._value_), Action(Act.STAND_D_DB_BB._value_), Action(Act.AIR_D_DF_FA._value_), Action(Act.AIR_D_DF_FB._value_),
+                            Action(Act.AIR_F_D_DFA._value_), Action(Act.AIR_F_D_DFB._value_), Action(Act.AIR_D_DB_BA._value_), Action(Act.AIR_D_DB_BB._value_),
+                            ]
+        else:
+            possible_actions = [Action(Act.FORWARD_WALK._value_), Action(Act.DASH._value_), Action(Act.BACK_STEP._value_), Action(Act.CROUCH._value_), Action(Act.JUMP._value_),
                             Action(Act.FOR_JUMP._value_), Action(Act.BACK_JUMP._value_), Action(Act.STAND_GUARD._value_), Action(Act.CROUCH_GUARD._value_),
                             Action(Act.AIR_GUARD._value_), Action(Act.THROW_A._value_), Action(Act.THROW_B._value_), Action(Act.STAND_A._value_), Action(Act.STAND_B._value_),
                             Action(Act.CROUCH_A._value_), Action(Act.CROUCH_B._value_), Action(Act.AIR_A._value_), Action(Act.AIR_B._value_), Action(Act.AIR_DA._value_),
@@ -150,7 +163,25 @@ class FighterState(BaseState):
                             Action(Act.STAND_D_DB_BA._value_), Action(Act.STAND_D_DB_BB._value_), Action(Act.AIR_D_DF_FA._value_), Action(Act.AIR_D_DF_FB._value_),
                             Action(Act.AIR_F_D_DFA._value_), Action(Act.AIR_F_D_DFB._value_), Action(Act.AIR_D_DB_BA._value_), Action(Act.AIR_D_DB_BB._value_),
                             Action(Act.STAND_D_DF_FC._value_)]
-        random.shuffle(possible_actions)
+        if self.mycharacter_data.hp < self.othercharacter_data.hp:
+            possible_actions = [Action(Act.STAND_D_DF_FC._value_),Action(Act.FORWARD_WALK._value_), Action(Act.DASH._value_), Action(Act.BACK_STEP._value_), Action(Act.CROUCH._value_), Action(Act.JUMP._value_),
+                            Action(Act.FOR_JUMP._value_), Action(Act.BACK_JUMP._value_), Action(Act.STAND_GUARD._value_), Action(Act.CROUCH_GUARD._value_),
+                            Action(Act.AIR_GUARD._value_), Action(Act.STAND_A._value_), Action(Act.STAND_B._value_),
+                            Action(Act.CROUCH_A._value_), Action(Act.CROUCH_B._value_), Action(Act.AIR_A._value_), Action(Act.AIR_B._value_), Action(Act.AIR_DA._value_),
+                            Action(Act.AIR_DB._value_), Action(Act.STAND_FA._value_), Action(Act.STAND_FB._value_), Action(Act.CROUCH_FA._value_),
+                            Action(Act.CROUCH_FB._value_), Action(Act.AIR_FA._value_), Action(Act.AIR_FB._value_), Action(Act.AIR_UA._value_), Action(Act.AIR_UB._value_),
+                            Action(Act.STAND_F_D_DFA._value_),
+                            Action(Act.STAND_D_DB_BA._value_), 
+                            ]
+        if Utility.get_actual_distance(self.mycharacter_data, self.othercharacter_data) > 200:
+             possible_actions = [Action(Act.FORWARD_WALK._value_), Action(Act.DASH._value_), Action(Act.BACK_STEP._value_), Action(Act.CROUCH._value_), Action(Act.JUMP._value_),
+                            Action(Act.FOR_JUMP._value_), Action(Act.BACK_JUMP._value_), Action(Act.STAND_GUARD._value_), Action(Act.CROUCH_GUARD._value_),
+                            Action(Act.AIR_GUARD._value_),
+                            Action(Act.AIR_DA._value_),
+                            Action(Act.AIR_DB._value_), Action(Act.AIR_FA._value_), Action(Act.AIR_FB._value_),
+                            Action(Act.STAND_D_DF_FA._value_), Action(Act.STAND_D_DF_FB._value_),
+                            Action(Act.STAND_D_DF_FC._value_)]
+        possible_actions.sort(key=lambda x: x.attack_dmg, reverse=True)
         return possible_actions
     
 
@@ -158,11 +189,8 @@ class FighterState(BaseState):
 
         newState = deepcopy(self)
         attack_dmg, energy, vel_x, vel_y, given_energy = extract_attack_info(action.action_name)
-        current_player = newState.current_player
+        current_player = newState.index
         newState.multiplier = 1
-
-        if current_player < 0:
-            current_player = 0
 
         # aggiornare la x e la y dei due player e calcolare la distanza
         newState.mycharacter_data.speed_x = vel_x
@@ -198,25 +226,17 @@ class FighterState(BaseState):
             
 
             newState.after_energy[1 - current_player] = newState.othercharacter_data.energy + given_energy
-            
-            
-            if newState.after_energy[1 - current_player] < 0:
-                newState.after_energy[1 - current_player] = newState.othercharacter_data.energy
-            else:
-                newState.othercharacter_data.energy = newState.after_energy[1 - current_player]
-                if action.action_name == Act.STAND_D_DF_FC._value_:
-                    newState.multiplier = 2
-                else:
-                    newState.multiplier = 1
-
-
-            newState.delta_energy = newState.after_energy[current_player] - newState.mycharacter_data.energy 
-            
+                            
             
             if newState.after_energy[current_player] < 0:
                 newState.after_energy[current_player] = newState.mycharacter_data.energy
             else:
+                newState.delta_energy = newState.after_energy[current_player] - newState.mycharacter_data.energy 
                 newState.mycharacter_data.energy = newState.after_energy[current_player]
+                if action.action_name == Act.STAND_D_DF_FC._value_:
+                    newState.multiplier = 2
+                else:
+                    newState.multiplier = 1
             
             if newState.after_energy[current_player] > newState.game_data.max_energies[current_player]:
                 newState.after_energy[current_player] = newState.game_data.max_energies[current_player]
@@ -236,6 +256,7 @@ class FighterState(BaseState):
         newState.mycharacter_data = newState.othercharacter_data
         newState.othercharacter_data = temp
         newState.current_player = newState.current_player * -1
+        newState.index = 1 - newState.index
         return newState
 
     def is_terminal(self):
@@ -258,9 +279,10 @@ class FighterState(BaseState):
 
         hp_opp_norm = self.delta_opp_hp
         
-        score = (1-energy_norm) * (hp_pl_norm - hp_opp_norm - self.distance) + (energy_norm) * self.multiplier * (hp_pl_norm - hp_opp_norm + self.distance)
+        score = (1-energy_norm) * (self.distance/960 - (hp_pl_norm - hp_opp_norm)/400) + (energy_norm) * ((hp_pl_norm - hp_opp_norm)/400 + self.distance/960)
         #logger.info("QUESTO È LO SCORE PER IL NODO CORRENTE: "+str(self.distance))
-        return score
+        score *= self.multiplier
+        return 1- math.tanh(self.delta_energy + score)
     
 
 
