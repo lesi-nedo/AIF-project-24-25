@@ -24,10 +24,11 @@ logger.propagate = True
 
 
 class MctsAi(AIInterface):
-    def __init__(self):
+    def __init__(self, plot_scenes: bool = False):
         super().__init__()
         self.blind_flag = True
-        self.plot_scenes = False
+        self.plot_scenes = plot_scenes
+
     def name(self) -> str:
         return self.__class__.__name__
 
