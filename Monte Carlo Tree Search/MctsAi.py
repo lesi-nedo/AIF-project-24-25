@@ -71,12 +71,12 @@ class MctsAi(AIInterface):
             self.cc.skill_cancel()
             initial_state = FighterState(self.game_data, self.cc, self.mycharacter_data, self.othercharacter_data, self.player)
             # Ora inizializzo il searcher con tutti i parametri impostati (tempo limite; iterazioni massime; valore della costante c)
-            searcher = MCTS(timeLimit=400, explorationConstant=2)
+            searcher = MCTS(iteration_limit=10, explorationConstant=math.sqrt(2))
             try:
                 best_action = searcher.search(initialState=initial_state)
                 #self.cc.command_call(best_action)
                 #logger.info("AZIONE MIGLIORE: "+str(best_action))
-                self.cc.command_call(str(best_action).upper())
+                self.cc.command_call(str(best_action.action_name).upper())
             except Exception as e:
                 tb = sys.exc_info()[-1]
                 stk = traceback.extract_tb(tb, 1)
