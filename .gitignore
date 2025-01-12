@@ -163,8 +163,11 @@ cython_debug/
 .vscode/
 DareFightingICE-7.0beta/log/
 DareFightingICE-7.0beta/log/**/*
+DareFightingICE_CODE/log/
+DareFightingICE_CODE/log/**/*
 python_script_log.txt
 test.sh
 resulttable
 game_process.pid
 prompt.txt
+
