@@ -24,12 +24,14 @@ logger.propagate = True
 
 
 class MctsAi(AIInterface):
-    def __init__(self,exploration_constant: float, iteration_limit: int, plot_scenes: bool = False):
+    def __init__(self,exploration_constant: float, iteration_limit: int, plot_scenes: bool = False, width: int = 960, height: int = 640):
         super().__init__()
         self.blind_flag = True
         self.plot_scenes = plot_scenes
         self.exploration_constant = exploration_constant
         self.iteration_limit = iteration_limit
+        self.width = width
+        self.height = height
         if self.plot_scenes is True:
             self._init_plots()
 
