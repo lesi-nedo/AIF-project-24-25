@@ -32,8 +32,9 @@ class MctsAi(AIInterface):
         self.iteration_limit = iteration_limit
         self.width = width
         self.height = height
-        if self.plot_scenes is True:
+        if self.plot_scenes:
             self._init_plots()
+            self.echo = self.display_thread.add_log
 
     def name(self) -> str:
         return self.__class__.__name__
@@ -104,13 +105,13 @@ class MctsAi(AIInterface):
             try:
                 best_action = searcher.search(initialState=initial_state)
                 #self.cc.command_call(best_action)
-                #logger.info("AZIONE MIGLIORE: "+str(best_action))
+                self.echo("AZIONE MIGLIORE: "+str(best_action))
                 self.cc.command_call(str(best_action.action_name).upper())
             except Exception as e:
                 tb = sys.exc_info()[-1]
                 stk = traceback.extract_tb(tb, 1)
                 fname = stk[0][2]
-                logger.warning(e)
+                self.echo(e)
             #self.cc.command_call(best_action)
     
     def round_end(self, round_result: RoundResult):
