@@ -18,17 +18,21 @@ app = typer.Typer(pretty_exceptions_enable=False)
 async def start_process(
     host: str,
     port: int,
+    exploration_constant: float,
+    iteration_limit: int,
     keyboard: bool = False,
     character: str = "ZEN",
     game_num: int = 1,
     plot_scenes: bool=False
 ):
+    exploration_constant = exploration_constant
+    iteration_limit = iteration_limit
     plot_scenes = plot_scenes
     gateway = Gateway(host, port)
     agent1 = KickAI()
     agent1 = ProblogAgent(plot_scenes)
     agent1 = PrologAI()
-    agent2 = MctsAi(plot_scenes)
+    agent2 = MctsAi(plot_scenes, exploration_constant=exploration_constant, iteration_limit=iteration_limit)
     gateway.register_ai("MctsAi", agent2)
     if not keyboard:
         gateway.register_ai("KickAI", agent1)

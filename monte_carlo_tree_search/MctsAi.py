@@ -24,10 +24,13 @@ logger.propagate = True
 
 
 class MctsAi(AIInterface):
-    def __init__(self, plot_scenes: bool = False):
+    def __init__(self,exploration_constant: float, iteration_limit: int, plot_scenes: bool = False):
         super().__init__()
         self.blind_flag = True
         self.plot_scenes = plot_scenes
+        self.exploration_constant = exploration_constant
+        self.iteration_limit = iteration_limit
+        self._init_plots()
 
     def name(self) -> str:
         return self.__class__.__name__
@@ -94,7 +97,7 @@ class MctsAi(AIInterface):
             self.cc.skill_cancel()
             initial_state = FighterState(self.game_data, self.cc, self.mycharacter_data, self.othercharacter_data, self.player)
             # Ora inizializzo il searcher con tutti i parametri impostati (tempo limite; iterazioni massime; valore della costante c)
-            searcher = MCTS(iteration_limit=10, explorationConstant=math.sqrt(2))
+            searcher = MCTS(iteration_limit=self.iteration_limit, explorationConstant=self.exploration_constant)
             try:
                 best_action = searcher.search(initialState=initial_state)
                 #self.cc.command_call(best_action)
