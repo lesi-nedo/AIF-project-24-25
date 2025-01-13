@@ -21,13 +21,14 @@ async def start_process(
     keyboard: bool = False,
     character: str = "ZEN",
     game_num: int = 1,
+    plot_scenes: bool=False
 ):
 
     gateway = Gateway(host, port)
     agent1 = KickAI()
-    agent1 = ProblogAgent()
+    agent1 = ProblogAgent(plot_scenes)
     agent1 = PrologAI()
-    agent2 = MctsAi()
+    agent2 = MctsAi(plot_scenes)
     gateway.register_ai("MctsAi", agent2)
     if not keyboard:
         gateway.register_ai("KickAI", agent1)
