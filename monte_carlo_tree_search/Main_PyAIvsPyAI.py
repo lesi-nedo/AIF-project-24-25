@@ -23,7 +23,7 @@ async def start_process(
     game_num: int = 1,
     plot_scenes: bool=False
 ):
-
+    plot_scenes = plot_scenes
     gateway = Gateway(host, port)
     agent1 = KickAI()
     agent1 = ProblogAgent(plot_scenes)
