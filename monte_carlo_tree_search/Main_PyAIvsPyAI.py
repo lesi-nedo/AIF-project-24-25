@@ -32,7 +32,7 @@ async def start_process(
     agent1 = KickAI()
     agent1 = ProblogAgent(plot_scenes)
     agent1 = PrologAI()
-    agent2 = MctsAi(plot_scenes, exploration_constant=exploration_constant, iteration_limit=iteration_limit)
+    agent2 = MctsAi(plot_scenes = plot_scenes, exploration_constant=exploration_constant, iteration_limit=iteration_limit)
     gateway.register_ai("MctsAi", agent2)
     if not keyboard:
         gateway.register_ai("KickAI", agent1)
