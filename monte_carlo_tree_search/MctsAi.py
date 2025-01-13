@@ -30,7 +30,8 @@ class MctsAi(AIInterface):
         self.plot_scenes = plot_scenes
         self.exploration_constant = exploration_constant
         self.iteration_limit = iteration_limit
-        self._init_plots()
+        if self.plot_scenes is True:
+            self._init_plots()
 
     def name(self) -> str:
         return self.__class__.__name__
@@ -117,4 +118,7 @@ class MctsAi(AIInterface):
         logger.info("game end")
         
     def close(self):
-        pass
+        logger.info("Closing MonteCarlo Agent")
+        if hasattr(self, 'display_thread'):
+            self.display_thread.stop()
+            self.display_thread.join()
