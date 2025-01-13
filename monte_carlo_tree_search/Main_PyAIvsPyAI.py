@@ -23,23 +23,29 @@ async def start_process(
     keyboard: bool = False,
     character: str = "ZEN",
     game_num: int = 1,
-    plot_scenes: bool=False
+    plot_scenes: bool=False,
+    problog_agent: bool=False,
+    prolog_ai: bool=False
 ):
     exploration_constant = exploration_constant
     iteration_limit = iteration_limit
     plot_scenes = plot_scenes
     gateway = Gateway(host, port)
     agent1 = KickAI()
-    agent1 = ProblogAgent(plot_scenes)
-    agent1 = PrologAI()
+    if problog_agent:
+        agent1 = ProblogAgent(plot_scenes)
+        agent_name = "ProblogAgent"
+    
+    if prolog_ai:
+        agent1 = PrologAI()
+        agent_name = "PrologAi"
+    
     agent2 = MctsAi(plot_scenes = plot_scenes, exploration_constant=exploration_constant, iteration_limit=iteration_limit)
     gateway.register_ai("MctsAi", agent2)
     if not keyboard:
-        gateway.register_ai("KickAI", agent1)
-        # gateway.register_ai("ProblogAgent", agent1)
-        gateway.register_ai("PrologAI", agent1)
+        gateway.register_ai(agent_name, agent1)
         await gateway.run_game(
-            [character, character], ["PrologAI", "MctsAi"], game_num
+            [character, character], [agent_name, "MctsAi"], game_num
         )
     else:
         await gateway.run_game(
