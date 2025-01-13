@@ -72,7 +72,7 @@ class MctsAi(AIInterface):
                     return
                 if self.display_thread.queue.full():
                     return
-                self.display_thread.queue.pyt_nowait(screen_data.display_bytes)
+                self.display_thread.queue.put_nowait(screen_data.display_bytes)
 
             except queue.Full:
                 pass
