@@ -71,12 +71,12 @@ problog_logger = logging.getLogger("problog")
 problog_logger.setLevel(logging.ERROR)
 
 class ProblogAgent(AIInterface):
-    def __init__(self, k_best_value: int = 5, plot_scenes: bool = False):
+    def __init__(self, k_best_value: int = 5, plot_scenes: bool = False, width: int = 960, height: int = 640):
         # time.sleep(20)
         super().__init__()
         self.blind_flag = False
-        self.width = 960
-        self.height = 640
+        self.width = width
+        self.height = height
         self.play_number: bool
         self.game_data: GameData
         self.frame_data: FrameData
