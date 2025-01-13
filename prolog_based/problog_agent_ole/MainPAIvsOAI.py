@@ -14,16 +14,27 @@ from ProblogAgent import ProblogAgent
 
 app = typer.Typer(pretty_exceptions_enable=False)
 from prolog_based.prolog_agent_simo.PrologAI import PrologAI
-from minimax.MinimaxAI import MinimaxAI
+from monte_carlo_tree_search.MctsAi import MctsAi
 
-async def start_process(host:str , port: int, character: str = "ZEN", game_number: int = 1, plot_scenes: bool = False):
+async def start_process(
+        host:str , port: int, character: str = "ZEN", game_number: int = 1, 
+        plot_scenes: bool = False, agent_simo: bool = False, agent_marco: bool = False, agent_fightice: bool = True
+    ):
     gateway = Gateway(host, port)
     a2 = ProblogAgent(plot_scenes=plot_scenes)
-    a1 = PrologAI()
     gateway.register_ai("ProblogAgent", a2)
-    gateway.register_ai("PrologAI", a1)
-    name_prolog = "PrologAI"
-    await gateway.run_game([character, character], [name_prolog,"ProblogAgent"], game_number)
+
+    if agent_simo:
+        a1 = PrologAI()
+        gateway.register_ai("PrologAI", a1)
+        name_agent = "PrologAI"
+    if agent_marco:
+        a1 = MctsAi()
+        gateway.register_ai("MctsAi", a1)
+        name_agent = "MctsAi"
+    if agent_fightice:
+        name_agent = "MctsAi23i"
+    await gateway.run_game([character, character], [name_agent,"ProblogAgent"], game_number)
 
     
     # a1 = MinimaxAI()
