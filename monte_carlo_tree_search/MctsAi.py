@@ -35,6 +35,8 @@ class MctsAi(AIInterface):
         if self.plot_scenes:
             self._init_plots()
             self.echo = self.display_thread.add_log
+        else:
+            self.echo = logger.info
 
     def name(self) -> str:
         return self.__class__.__name__

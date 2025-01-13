@@ -2,9 +2,14 @@ import asyncio
 import typer
 import sys
 import os
+import pathlib
+import numpy as np
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "prolog_based/prolog_agent_simo"))
+sys.path.append(os.path.join(pathlib.Path(os.path.dirname(__file__)).parent, "prolog_agent_simo"))
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+sys.path.append(os.path.join(pathlib.Path(os.path.dirname(__file__)).parent.parent, "monte_carlo_tree_search"))
+print(f"HEHEHE: {os.path.dirname(__file__)}")
+
 
 from typing_extensions import Annotated, Optional
 from pyftg.socket.aio.gateway import Gateway
@@ -18,7 +23,7 @@ from monte_carlo_tree_search.MctsAi import MctsAi
 
 async def start_process(
         host:str , port: int, character: str = "ZEN", game_number: int = 1, 
-        plot_scenes: bool = False, agent_simo: bool = False, agent_marco: bool = False, agent_fightice: bool = True
+        plot_scenes: bool = False, agent_simo: bool = False, agent_marco: bool = True, agent_fightice: bool = False
     ):
     gateway = Gateway(host, port)
     a2 = ProblogAgent(plot_scenes=plot_scenes)
@@ -29,7 +34,7 @@ async def start_process(
         gateway.register_ai("PrologAI", a1)
         name_agent = "PrologAI"
     if agent_marco:
-        a1 = MctsAi()
+        a1 = MctsAi(exploration_constant=np.sqrt(2), iteration_limit=100)
         gateway.register_ai("MctsAi", a1)
         name_agent = "MctsAi"
     if agent_fightice:
