@@ -57,8 +57,8 @@ class KB():
         self.kb.asserta("character_box("+"player"+type+", "+str(b1)+ ", " + str(b2) + ")")
         self.kb.asserta("hit_conferm("+"player"+type+", "+str(hit_conferm)+")")
     
-    def close(self):
-        self.kb.close()
+    def cleanup(self):
+        self.retract_frame_info()
 
 
 Kb = KB()
@@ -132,5 +132,7 @@ class PrologAI(AIInterface):
         logger.info("game end")
         
     def close(self):
-        Kb.close()
+        """Cleanup resources"""
+        if hasattr(self, 'Kb'):
+            Kb.cleanup()
     
