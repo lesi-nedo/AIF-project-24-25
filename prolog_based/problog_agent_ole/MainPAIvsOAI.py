@@ -19,15 +19,15 @@ from ProblogAgent import ProblogAgent
 app = typer.Typer(pretty_exceptions_enable=False)
 from prolog_based.prolog_agent_simo.PrologAI import PrologAI
 from monte_carlo_tree_search.MctsAi import MctsAi
+from StatsTracker import StatsTracker
 
 async def start_process(
         host:str , port: int, character: str = "ZEN", game_number: int = 1, 
         plot_scenes: bool = False, agent_simo: bool = False, agent_marco: bool = True, agent_fightice: bool = False
     ):
     gateway = Gateway(host, port)
-    a2 = ProblogAgent(plot_scenes=plot_scenes)
-    gateway.register_ai("ProblogAgent", a2)
-
+    
+    stats_tracker = None
     if agent_simo:
         a1 = PrologAI()
         gateway.register_ai("PrologAI", a1)
@@ -36,6 +36,9 @@ async def start_process(
         a1 = MctsAi(exploration_constant=np.sqrt(2), iteration_limit=3)
         gateway.register_ai("MctsAi", a1)
         name_agent = "MctsAi"
+        stats_tracker= StatsTracker("MctsAi", "ProblogAgent")
+        a2 = ProblogAgent(plot_scenes=plot_scenes, stats_tracker=stats_tracker)
+        gateway.register_ai("ProblogAgent", a2)
     if agent_fightice:
         name_agent = "MctsAi23i"
     await gateway.run_game([character, character], [name_agent,"ProblogAgent"], game_number)

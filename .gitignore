@@ -171,3 +171,5 @@ resulttable
 game_process.pid
 prompt.txt
 
+prolog_based/problog_agent_ole/stats/*
+prolog_based/problog_agent_ole/agent/**/*

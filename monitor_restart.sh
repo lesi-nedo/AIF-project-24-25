@@ -362,7 +362,7 @@ if [ -z "$active_pid" ] || ! kill -0 "$active_pid" 2>/dev/null; then
 fi
 
 
-EXCLUDE_PATTERN="(__pycache__|\.git|\.vscode|\.idea|\.pytest_cache|\.mypy_cache)"
+EXCLUDE_PATTERN="(__pycache__|\.git|\.vscode|\.idea|\.pytest_cache|\.mypy_cache|stats)"
 
 sleep 3
 # Get process IDs from environment variables if they exist

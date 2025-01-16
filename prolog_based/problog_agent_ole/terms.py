@@ -6,7 +6,8 @@ import random
 from problog.logic import Term
 from problog.logic import term2str
 from operator import add
-from numpy.random import Generator as np_generator
+import pandas as pd
+from mappings import actions_type
 rng = np.random.default_rng()
 
 move_actions = [
@@ -46,28 +47,24 @@ air_attack_actions = [
     Term("air_fb"), Term("air_db"), Term("air_b"), Term("air_da")
 ]
 
-total_air_damage = 10 + 10 + 10 + 5
 
 stand_attack_actions = [
     Term("stand_b"), Term("stand_f_d_dfa"),
 ]
 
-total_stand_damage = 5 + 10 + 10
 
 long_attack_actions = [
     Term("stand_fb"), Term("crouch_fb"), Term("air_db")
 ]
 
-total_long_damage = 12 + 12 + 10
 
-total_bs_damage = 8 + 12 + 12 + 8 + 5 + 10 + 10
 attack_ba_actions = [
     Term("air_fb"), Term("air_db"), Term("air_b"), Term("air_da")
 ]
-total_ba_damage = 10  + 10 + 10 + 5
- 
+
+
 attack_b_actions = attack_bs_actions + attack_ba_actions
-total_b_damage = total_bs_damage + total_ba_damage
+
 
 most_effective_actions = {}
 most_effective_actions["total"] = 1
@@ -75,61 +72,17 @@ most_effective_actions["total"] = 1
 for action in attack_b_actions:
     most_effective_actions[action] = 0.0
 
-damage_amounts = {
-    Term("stand_d_df_fc"): 120,
-    # Term("stand_f_d_dfb"): 40,
-    Term("stand_d_db_bb"): 25,
-    Term("air_d_db_ba"): 10,
-    Term("stand_fa"): 8,
-    Term("air_fb"): 10,
-    Term("stand_fb"): 12,
-    Term("crouch_fb"): 12,
-    Term("stand_a"): 5,
-    Term("stand_b"): 10,
-    Term("stand_f_d_dfa"): 10,
-    Term("crouch_fa"): 8,
-    Term("air_db"): 10,
-    Term("air_b"): 10,
-    Term("air_da"): 5,
-    Term("stand_d_df_fa"): 5
-}
 
-total_damage_s = 120  + 25 + 10 + 5
 
-energy_costs = {
-    Term("stand_d_df_fc"): 150,
-    # Term("stand_f_d_dfb"): 55,
-    Term("stand_d_db_bb"): 50,
-    Term("air_d_db_ba"): 5,
-    Term("stand_d_df_fa"): 5
-}
 
-move_ranges = {
-    Term("stand_d_df_fc"): {'max': 1000, 'min': 0},
-    Term("crouch_fb"): {'max': 200, 'min': 10},
-    Term("stand_fb"): {'max': 210, 'min': 70},
-    Term("air_fb"): {'max': 130, 'min': 20},
-    Term("stand_fa"): {'max': 130, 'min': 0},
-    Term("crouch_fa"): {'max': 130, 'min': 0},
-    Term("stand_a"): {'max': 90, 'min': 0},
-    Term("air_d_df_fa"): {'max': 500, 'min': 10},
-    Term("stand_f_d_dfa"): {'max': 90, 'min': 0},
-    # Term("stand_f_d_dfb"): {'max': 65, 'min': 0},
-    Term("stand_d_db_bb"): {'max': 300, 'min': 0},
-    Term("air_d_db_ba"): {'max': 100, 'min': 0},
-    Term("stand_b"): {'max': 120, 'min': 10},
-    Term("air_db"): {'max': 120, 'min': 10},
-    Term("air_b"): {'max': 120, 'min': 10},
-    Term("air_da"): {'max': 100, 'min': 0},
-    Term("stand_d_df_fa"): {'max': 500, 'min': 10}
-}
 
 ENERGY_BEST_SPECIAL = 150
 EPSILON_PROB = 0.85 # Probability of not taking a special move (epsilon-greedy)
 AGGRESSIVE_PROB = 0.92 # Probability of taking an aggressive move
-CAN_HIT_Y = 50
+CAN_HIT_Y = 20
 STAGE_WIDTH = 960
 STAGE_HEIGHT = 640
+MAX_CAN_HIT_X = 220
 WEIGHTS = {
     'distance': 0.25,
     'health': 0.25,
@@ -141,48 +94,103 @@ WEIGHTS = {
 
 
 counteractive_actions = {
-    "stand_d_df_fa": ("air_d_db_ba", 1),
-    "stand_f_d_dfb": ("back_step", 1),
-    "stand_d_db_bb": ("for_jump",1),
-    "stand_fa":  ("stand_d_df_fa", 1),
-    "crouch_fb": ("for_jump", 1),
-    "crouch_fa": ("crouch_fb",1),
-    "stand_a": ("crouch_fb",1),
-    "stand_a": ("stand_d_df_fa",1),
-    "stand_f_d_dfa": ("for_jump",1),
+    Term("stand_d_df_fa"): (Term("air_d_db_ba"), 1),
+    Term("stand_f_d_dfb"): (Term("back_step"), 1),
+    Term("stand_d_db_bb"): (Term("for_jump"),1),
+    Term("stand_fa"):  (Term("stand_d_df_fa"), 1),
+    Term("crouch_fb"): (Term("for_jump"), 1),
+    Term("crouch_fa"): (Term("crouch_fb"),1),
+    Term("stand_a"): (Term("crouch_fb"),1),
+    Term("stand_a"): (Term("stand_d_df_fa"),1),
+    Term("stand_f_d_dfa"): (Term("for_jump"),1),
 }
 counteractive_actions['total'] = 1
 
+motion_data = pd.read_csv("prolog_based/problog_agent_ole/Motion.csv")
+motion_data['motionName'] = motion_data['motionName'].apply(lambda x: x.lower())
+motion_data = motion_data.set_index('motionName')
+damage_amounts = motion_data['attack.HitDamage'].to_dict()
+energy_costs = motion_data['attack.StartAddEnergy'].apply(lambda x: np.abs(x)).to_dict()
 
 
-def can_hit(action, my_x:int, op_x:int, my_y:int, op_y:int, max_dist:int, min_dist:int) -> Tuple[int, int]:
+total_damage_s = sum([damage_amounts.get(str(action), 7) for action in attack_s_actions])
+total_ba_damage = sum([damage_amounts.get(str(action), 7) for action in attack_ba_actions])
+
+total_ba_damage = sum([damage_amounts.get(str(action), 7) for action in attack_ba_actions])
+total_stand_damage = sum([damage_amounts.get(str(action), 7) for action in stand_attack_actions])
+total_long_damage = sum([damage_amounts.get(str(action), 7) for action in long_attack_actions])
+total_bs_damage = sum([damage_amounts.get(str(action), 7) for action in attack_bs_actions])
+
+total_damage_s = sum([damage_amounts.get(action, 7) for action in attack_s_actions])
+
+total_b_damage = total_bs_damage + total_ba_damage
+total_air_damage = sum([damage_amounts.get(str(action), 7) for action in air_attack_actions])
+
+def get_attack_hit_areas(action:str, positions:dict[str,int], facing_dirs:dict[str,int], player:str) -> Tuple[int, int, int, int]:
     
-    distance_x = np.abs(my_x - op_x)
-    distance_y = np.abs(my_y - op_y)
-    if action == 'air_d_db_ba' and distance_y > CAN_HIT_Y:
-        return 0
-    if distance_x > max_dist or distance_x < min_dist:
-        return 0
-    if distance_y > CAN_HIT_Y:
-        return 0
-    return 1
+    str_action = str(action)
+
+    hit_area_left = positions[f"{player}_x"]
+    hit_area_right = positions[f"{player}_x"]
+    hit_area_up = positions[f"{player}_y"]
+    hit_area_down = positions[f"{player}_y"]
+    half_diff_up_down = np.abs(motion_data.loc[str_action, "attack.hitAreaUp"] - motion_data.loc[str_action, "attack.hitAreaDown"]) // 2
+    half_diff_left_right = np.abs(motion_data.loc[str_action, "attack.hitAreaLeft"] - motion_data.loc[str_action, "attack.hitAreaRight"]) // 2
+    hit_area_up = hit_area_up + half_diff_up_down
+    hit_area_down = hit_area_down + half_diff_up_down
+
+    if facing_dirs[f"{player}_facing_dir"] == 1:
+        hit_area_left = hit_area_left + half_diff_left_right
+        hit_area_right = hit_area_right + half_diff_left_right
+        
+    
+    else:
+        hit_area_left = hit_area_left  - half_diff_left_right
+        hit_area_right = hit_area_right - half_diff_left_right
+        
+    
+    return hit_area_left, hit_area_right, hit_area_up, hit_area_down
 
 
-def compute_helper(actions_to_check, my_x:int, op_x:int, my_y:int, op_y:int, total_damage:int, move_ranges: dict) -> Tuple[int, int]:
+def can_hit(action, facing_dirs:dict, opponent_hbox:list[int], positions:dict[str,int]) -> Tuple[int, int]:
+    my_hit_areas = get_attack_hit_areas(action, positions, facing_dirs, "my")
+    variance_x = np.random.randint(5, 20)
+    variance_y = np.random.randint(5, 14)
+
+    hit_x = (my_hit_areas[0] - variance_x <= opponent_hbox[1] and  # my left < opp right
+            my_hit_areas[1] + variance_x >= opponent_hbox[0])      # my right > opp left
+            
+    hit_y = (my_hit_areas[2] - variance_y <= opponent_hbox[3] and  # my top < opp bottom
+            my_hit_areas[3] + variance_y >= opponent_hbox[2])      # my bottom > opp top
+
+    return hit_x and hit_y
+    
+
+def compute_helper(
+    actions_to_check, acing_dirs:dict, total_damage:int, 
+    positions:dict[str, int], opponent_hbox:list[int], base_weights:list[float] = None) -> Tuple[int, int]:
     actions = []
-    probabilities = []
+    weights = []
 
-    for action in actions_to_check:
-    
-        hit = can_hit(action, my_x, op_x, my_y, op_y, move_ranges[action]['max'], move_ranges[action]['min'])
-        if hit:
+    for indx,action in enumerate(actions_to_check):
+        type_action = actions_type.get(str(action).upper(), "non_attack")
+        if type_action == "non_attack" or type_action == "movement":
+            
             actions.append(action)
-            damage = damage_amounts[action]/total_damage
-            probabilities.append(damage)
+            weights.append(np.random.random()+ 0.2)
+            continue
+        hit = can_hit(action, acing_dirs, opponent_hbox, positions)
+        if hit:
+            # print(f"Action: {action} --- Hit: {hit}.", flush=True)
+            actions.append(action)
+            damage = damage_amounts.get(str(action), 7) / total_damage
+            if base_weights:
+                damage += base_weights[indx]
+            weights.append(damage)
     
         
     
-    return actions, probabilities
+    return actions, weights
 
 def evaluate_state(my_x: int, op_x: int, my_y: int, op_y: int, 
                   my_health: int, op_health: int, my_energy: int, 
@@ -252,10 +260,13 @@ def get_action_weights(actions: list, state_score: float, base_weights: list,
         if action in move_actions:
             if state_score < 0.4:  # Defensive movement when disadvantaged
                 weight *= 1.5
+        if action in most_effective_actions:
+            weight += most_effective_actions[action] / most_effective_actions["total"]
                 
         base_weights[indx] += weight
    
     return base_weights
+
 
 def get_one_foreach_random_action() -> list:
     rand_b_action = rng.choice(attack_b_actions, size=1, replace=False)
@@ -265,29 +276,38 @@ def get_one_foreach_random_action() -> list:
     
     return actions_.tolist()
 @problog_export(
-        '+int', '+int', '+int', '+int', '+int', '+int', '+int', '+int', '+int',
-        '+int', '+int',  '+int', '+str', '+str', '+str', '+str', '+list',  '-list'
+        '+int', '+int', '+int', '+int', '+int', '+int', '+int', '+int', '+int', '+int',
+        '+int', '+int',  '+int', '+str', '+str', '+str', '+list', '+list',  '-list'
     )
 def possible_actions(
-        my_x:int, op_x:int, my_y:int, op_y:int, my_health: int, my_prev_health:int, opp_health:int, opp_prev_health:int,
-        my_curr_energy: int, my_prev_energy:int,
-        opponent_curr_energy: int, opponent_prev_energy: int, 
-        opponent_action_type: str, opponent_prev_action: str, my_prev_action: str, my_prev_action_type: str,  most_opponent_actions: list
-    ) -> list[Term]:
-    
+        my_x:int, op_x:int, my_y:int, op_y:int, my_facing_dir:int, my_health: int, my_prev_health:int, opp_health:int, opp_prev_health:int,
+        my_curr_energy: int, my_prev_energy:int, opponent_curr_energy: int, opponent_prev_energy: int, 
+        opponent_pred_action_type: str, my_prev_action: str, opponent_prev_action,  most_prob_opponent_actions: list[str],
+        opponent_hbox: list[int]
+    ) -> list[str]:
     distance_x = np.abs(my_x - op_x)
     distance_y = np.abs(my_y - op_y)
-    # print(f"Most opponent actions: {most_opponent_actions}", flush=True)
+    positions = {
+        "my_x": my_x, "op_x": op_x, "my_y": my_y, "op_y": op_y
+    }
     score = evaluate_state(my_x, op_x, my_y, op_y, my_health, opp_health, my_curr_energy, distance_x)
+    facing_dirs = {"my_facing_dir": my_facing_dir, "op_facing_dir": my_facing_dir * -1}
+    
+    opponent_prev_action = Term(opponent_prev_action)
+    my_prev_action = Term(my_prev_action)
+    
     actions = []
     weights = []
+
     if (opponent_curr_energy >= ENERGY_BEST_SPECIAL - 2):
             return [Term("for_jump")]
     
-    if my_curr_energy >= ENERGY_BEST_SPECIAL and distance_y < CAN_HIT_Y:
+    if my_curr_energy >= ENERGY_BEST_SPECIAL and (distance_y < CAN_HIT_Y or my_prev_action in long_attack_actions):
             return [Term("stand_d_df_fc")]
-    
-    if opponent_action_type == "attack" or opponent_action_type == "special":
+
+    opponent_prev_action_type = actions_type.get(str(opponent_prev_action).upper(), "non_attack")
+    my_prev_action_type = actions_type.get(str(my_prev_action).upper(), "non_attack")
+    if opponent_prev_action_type == "attack" or (opponent_prev_action_type == "special" and my_prev_action_type == "attack"):
         if ((my_health == my_prev_health and my_curr_energy == my_prev_energy) or 
             (opp_health <= opp_prev_health and opponent_curr_energy < opponent_prev_energy)):
             action_key = counteractive_actions.get(opponent_prev_action, (my_prev_action, 0))
@@ -304,88 +324,100 @@ def possible_actions(
             bonus += 1
         if opp_health < opp_prev_health:
             bonus += 2
-        most_effective_actions[Term(my_prev_action)] += bonus
+        term_action = my_prev_action
+        bonus += most_effective_actions.get(term_action, 0)
+        most_effective_actions.update({term_action: bonus})
         most_effective_actions["total"] += bonus
+    prob = np.random.random()
+    if ((opponent_pred_action_type == "special" and prob > AGGRESSIVE_PROB and opponent_curr_energy > 9) or opponent_curr_energy < opponent_prev_energy):
+        return forward_actions
+    if distance_x > MAX_CAN_HIT_X:
+        actions.extend(forward_actions)
+        weights.extend(get_action_weights(forward_actions, score, probabilities_forward, opponent_pred_action_type))
+        sum_weights = sum(weights)
+        probabilities = [w/sum_weights for w in weights]
+        return rng.choice(actions, p=probabilities, size=2, replace=False).tolist()
     
-    if ((opponent_action_type == "special" and opponent_curr_energy > 10) or opponent_curr_energy < opponent_prev_energy):
-        actions.extend(arial_moves_actions)
-        weights.extend(get_action_weights(arial_moves_actions, score, probabilities_air_moves, opponent_action_type))
     else:
+        
+        if len(most_prob_opponent_actions) > 0:
+            for most_prob_opp_action in most_prob_opponent_actions:
+                    most_prob_opp_action = term2str(most_prob_opp_action)
+                    prob,action = most_prob_opp_action.split("-")
+                    action = action.strip()
+                    prob = float(prob)
+                    if action in counteractive_actions:
+                        action_key = counteractive_actions[action]
+                        if action_key[1] > 0:
+                            action_type = actions_type.get(action, "non_attack")
+                            if action_type == "attack":
+                                action = Term(action)
+                                actions.append(action)
+                                weights.append(counteractive_actions[action][1] / counteractive_actions["total"])
+            total_actions = len(actions)
+            if  total_actions > 0 and (score < 0.5 or opponent_pred_action_type == "attack"):
+                
+                actions,weights = compute_helper(actions, facing_dirs, total_b_damage, positions=positions, opponent_hbox=opponent_hbox, base_weights=weights)
+            
+                total_actions = len(actions)
 
-        for most_prob_opp_action in most_opponent_actions:
-            if isinstance(most_prob_opp_action, Term):
-                most_prob_opp_action = term2str(most_prob_opp_action)
-                action,prob = most_prob_opp_action.split("-")
-                action = action.strip()
-                prob = float(prob)
-                if action in counteractive_actions:
-                    action_key = counteractive_actions[action]
-                    if action_key[1] > 0:
-                        actions.append(Term(action))
-                        weights.append(counteractive_actions[action][1] / counteractive_actions["total"])
-                        continue
-                    
-        if len(actions) > 0 and (score < 0.5 or opponent_action_type == "attack"):
-            probabilities = [w/sum(weights) for w in weights]
-            action =  rng.choice(actions, p=probabilities, size=1, replace=False)
-            return action
-       
+                if total_actions > 0:
+                    probabilities = [w/sum_weights for w in weights] 
+                    return rng.choice(actions, p=probabilities, size=1, replace=False).tolist()
+    
         if (my_curr_energy > 4 and 
                 random.random() > EPSILON_PROB and distance_y < CAN_HIT_Y
             ):
             
             for s_action in attack_s_actions:
-                if energy_costs.get(s_action) <= my_curr_energy:
-                    local_actions, local_weights = compute_helper([s_action], my_x, op_x, my_y, op_y, total_damage_s, move_ranges)
-                    local_weights = get_action_weights(local_actions, score, local_weights, opponent_action_type)
+                if energy_costs.get(str(s_action)) < my_curr_energy:
+                    local_actions, local_weights = compute_helper([s_action], facing_dirs, total_damage_s, opponent_hbox=opponent_hbox, positions=positions)
+                    local_weights = get_action_weights(local_actions, score, local_weights, opponent_pred_action_type)
                     actions.extend(local_actions)
                     weights.extend(local_weights)
 
         
-        if (not opponent_action_type == "attack" or random.random() > AGGRESSIVE_PROB):
-            actions_local, base_weights = compute_helper(attack_b_actions, my_x, op_x, my_y, op_y, total_b_damage, move_ranges)
+        if (not opponent_pred_action_type == "attack" or random.random() < AGGRESSIVE_PROB):
+            actions_local, base_weights = compute_helper(attack_b_actions, facing_dirs, total_b_damage,opponent_hbox=opponent_hbox, positions=positions)
             performance_weights = [most_effective_actions[action] / most_effective_actions["total"] for action in attack_b_actions]
             base_weights = list(map(add, base_weights, performance_weights))
-            weights.extend(get_action_weights(actions_local, score, base_weights, opponent_action_type))
+            weights.extend(get_action_weights(actions_local, score, base_weights, opponent_pred_action_type))
             actions.extend(actions_local)
         else:
             
             actions.extend(non_attack_actions)
-            weights.extend(get_action_weights(non_attack_actions, score, probabilities_non_attack, opponent_action_type))
+            weights.extend(get_action_weights(non_attack_actions, score, probabilities_non_attack, opponent_pred_action_type))
         
         
-        if len(actions) == 0 or score < 0.4:
+        if len(actions) == 0 or score < 0.3:
             actions_ = None
             local_weights = None
             if score < 0.1:
                 actions_ = defensive_actions
                 local_weights = np.random.dirichlet(np.ones(len(defensive_actions)))
-            elif distance_x > 140:
-                
-                actions_ = forward_actions + defensive_actions
-                if my_y > CAN_HIT_Y:
-                    probabilities_defensive[2] = 0.6
-                else:
-                    probabilities_defensive[1] = 0.6
-                local_weights = probabilities_forward + probabilities_defensive
-                if opponent_prev_action == "special" or opponent_prev_energy > opponent_curr_energy:
-                    actions_ = defensive_actions
-                    local_weights = [0.15, 0.8, 0.05]
-                
-            elif distance_x < 100 and score < 0.05:
-                actions_ = backward_actions
-                local_weights = probabilities_backward
+            elif distance_x < 100 and score < 0.25:
+                actions_ = backward_actions + defensive_actions
+                local_weights = probabilities_backward + probabilities_defensive
             else:
-                actions_ = long_attack_actions
+                actions_ = long_attack_actions 
                 local_weights = []
                 for action in long_attack_actions:
                     local_weights.append(most_effective_actions[action] / most_effective_actions["total"])
+                local_weights.extend(probabilities_move)
 
             actions.extend(actions_)
-            weights.extend(get_action_weights(actions_, score, local_weights, opponent_action_type))
-    weights_sum = sum(weights)
-    probabilities = [w/weights_sum for w in weights]
-    if len(actions) == 1:
-        return actions
-    return rng.choice(a=actions, p=probabilities, size=2, replace=False).tolist()
-    
+            weights.extend(get_action_weights(actions_, score, local_weights, opponent_pred_action_type))
+            actions,weights = compute_helper(actions_, facing_dirs, total_long_damage, positions=positions, opponent_hbox=opponent_hbox, base_weights=weights)
+            if len(actions) == 0:
+                return long_attack_actions        
+    total_actions = len(actions)
+    if total_actions > 0:
+        if total_actions < 3:
+            return actions
+
+        weights_sum = sum(weights)
+        probabilities = [w/weights_sum for w in weights]
+        return rng.choice(a=actions, p=probabilities, size=2, replace=False).tolist()
+    return actions
+
+

@@ -107,7 +107,7 @@ class MctsAi(AIInterface):
             try:
                 best_action = searcher.search(initialState=initial_state)
                 #self.cc.command_call(best_action)
-                self.echo("AZIONE MIGLIORE: "+str(best_action))
+                # self.echo("AZIONE MIGLIORE: "+str(best_action))
                 self.cc.command_call(str(best_action.action_name).upper())
             except Exception as e:
                 tb = sys.exc_info()[-1]

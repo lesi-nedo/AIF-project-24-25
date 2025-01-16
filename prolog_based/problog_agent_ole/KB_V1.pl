@@ -23,7 +23,7 @@ P::opp_state(S, C_S, N) :-
     possible_state(S),
     count_state(S, C_S), 
     count_total_states(N),
-    C_S =< N, P is C_S/N.
+    P is C_S/N.
 
 0.8::health_value(A, X) :- agent(A), A = opponent, curr_hp_value(A, X).
 0.8::energy_value(A, X) :- agent(A), A = opponent, curr_energy_value(A,X).
@@ -31,45 +31,54 @@ P::opp_state(S, C_S, N) :-
 1.0::energy_value(A, X) :- agent(A), A = me, curr_energy_value(A,X).
 
 % High damage special moves 
-0.48::s_action(stand_d_df_fc).  % Ultimate - highest priority but energy expensive
-0.1::s_action(stand_f_d_dfb).  % Heavy special  one step back to avoid counter
-0.13::s_action(air_d_df_fa).    % Air projectile for zoning
-0.18::s_action(stand_d_db_bb).  % Counter - situational
-0.05::s_action(air_d_db_ba).    % this is effective against   stand_d_df_fa
-0.06::s_action(stand_d_df_fa).
+s_action(stand_d_df_fc).  % Ultimate - highest priority but energy expensive
+s_action(stand_f_d_dfb).  % Heavy special  one step back to avoid counter
+s_action(air_d_df_fa).    % Air projectile for zoning
+s_action(stand_d_db_bb).  % Counter - situational
+s_action(air_d_db_ba).    % this is effective against   stand_d_df_fa
+s_action(stand_d_df_fa).
 
 % Basic attacks
-0.2::bs_action(stand_fa).
-0.18::bs_action(stand_fb). 
-0.11::bs_action(crouch_fb). 
-0.10::bs_action(crouch_fa).
-0.09::bs_action(stand_a).
- 0.12::bs_action(stand_b).
-0.11::bs_action(stand_f_d_dfa).
+bs_action(stand_fa).
+bs_action(stand_fb). 
+bs_action(crouch_fb). 
+bs_action(crouch_fa).
+bs_action(stand_a).
+bs_action(stand_b).
+bs_action(stand_f_d_dfa).
 
-0.35::ba_action(air_fb). 
-0.3::ba_action(air_db). 
-0.19::ba_action(air_b). 
-0.16::ba_action(air_da). 
+ba_action(air_fb). 
+ba_action(air_db). 
+ba_action(air_b). 
+ba_action(air_da). 
 
 
+0.98::action_makes_fly_opponent(S) :- S = stand_f_d_dfb; S = stand_d_df_fc.
+
+0.95::action_downs_opponent(S) :- S = stand_f_d_dfa; S = stand_d_db_bb; S = crouch_fb.
+
+    
+0.9::action_pushes_opponent(S) :-
+    S = air_d_df_fa; S = stand_fa; S = stand_fb; S = stand_d_df_fa;
+    S = air_fb; S = air_db; S = air_b; S = air_da; S = crouch_fa; S = stand_a; S = stand_b;
+    S = air_d_db_ba.
 
 
 % Movement priorities
-0.12::m_action(dash).           % Close distance quickly
-0.1::m_action(back_step).      % Create space
-0.3::m_action(for_jump).       % Approach from air
-0.16::m_action(back_jump).      % Retreat and avoid
-0.12::m_action(forward_walk).     % Default action
-0.2::m_action(crouch).
+m_action(dash).           % Close distance quickly
+m_action(back_step).      % Create space
+m_action(for_jump).       % Approach from air
+m_action(back_jump).      % Retreat and avoid
+m_action(forward_walk).     % Default action
+m_action(crouch).
 
 forward_move(A) :- A=dash; A=for_jump; A=forward_walk.
 backward_move(A) :- A=back_step;  A=back_jump.
 
 % Defense reactions
-0.4::d_action(stand_guard).    % Most common block
-0.3::d_action(crouch_guard).   % Low block
-0.2::d_action(air_guard).      % Air defense
+d_action(stand_guard).    % Most common block
+d_action(crouch_guard).   % Low block
+d_action(air_guard).      % Air defense
 
 defend(A) :- A=stand_guard; A=crouch_guard; A=air_guard.
 
@@ -85,13 +94,6 @@ energy(Agent, high) :- energy_value(Agent, X), X >= 50, X =< 149.
 energy(Agent, medium) :- energy_value(Agent, X), X >= 10, X < 50.
 energy(Agent, low) :- energy_value(Agent, X), X < 10.
 
-1.0::action_makes_fly_opponent(S) :- S = stand_f_d_dfb; S = stand_d_df_fc.
-
-0.95::action_downs_opponent(S) :- S = stand_f_d_dfa; S = stand_d_db_bb; S = crouch_fb.
-
-    
-0.9::action_pushes_opponent(S) :-
-    S = air_d_df_fa; S = stand_fa; S = stand_fb, S = stand_d_df_fa.
 
 % Keep base state and action probabilities unchanged...
 
@@ -271,32 +273,7 @@ calculate_energy_ratio(EGain, ECost, EnergyRatio) :-
     EnergyRatio is GainRatio - CostRatio.
 
 
-get_penalty_prev_sel(Action, Penalty) :-
-    my_prev_action(MyPrevAction),
-    (
-        (MyPrevAction = Action,
-            Penalty is 0.01
-            
-        );
-        (MyPrevAction \= Action,
-        
-            (action_downs_opponent(MyPrevAction),
-                Penalty is 0.4
-
-            );
-            (action_pushes_opponent(MyPrevAction),
-                Penalty is 0.9
-            );
-            (action_makes_fly_opponent(MyPrevAction),
-                Penalty is 0.1
-            );
-            (\+action_downs_opponent(MyPrevAction), \+action_pushes_opponent(MyPrevAction), \+action_makes_fly_opponent(MyPrevAction),
-                Penalty is 1.0
-            )
-        )
-    ).
-
-max_dist_y(45).
+max_dist_y(20).
 
 action_utility(Action, FinalUtility) :-
     curr_pos(me, X1, Y1),
@@ -305,112 +282,87 @@ action_utility(Action, FinalUtility) :-
     DistanceY is abs(Y1 - Y2),
     curr_hp_value(me, MyHPTemp),
     MyHP is (MyHPTemp / 400),
-    (((bs_action(Action); s_action(Action); ba_action(Action)),
-        damage(Action, Damage),
-        energy_gain(Action, EGain),
-        energy_cost(Action, ECost),
-        calculate_damage_ratio(Damage, DamageRatio),
-        calculate_energy_ratio(EGain, ECost, EnergyRatio),
-        opp_state(OppState, _, _), 
-        my_state(MyState),
-        max_dist_y(MaxY),
-        
-        (is_combat_action(Action),
-            (((DistanceX  < 200),
-                (DistanceY < MaxY,
-                    (MyState = OppState,
-                        DistMultTemp = 1.5
-                    );
-                    (MyState \= OppState,
-                        DistMultTemp = 0.8
-                    )
-                
-                );
-                (DistanceY >= MaxY ,
-                    (MyState = OppState,
-                        DistMultTemp = 1.2
-                    );
-                    (MyState \= OppState,
-                        DistMultTemp = 0.7
-                    )
-
-                )
-            );
-            ((DistanceX >= 200),
-                (DistanceY < MaxY ,
-                    (MyState = OppState,
-                        DistMultTemp = 1.2
-                    );
-                    (MyState \= OppState,
-                        DistMultTemp = 0.8
-                    )
-                
-                );
-                (DistanceY >= MaxY ,
-                    (MyState = OppState,
-                        DistMultTemp = 0.9
-                    );
-                    (MyState \= OppState,
-                        DistMultTemp = 0.6
-                    )
-
-                )
-            )),
+    my_state(MyState),
+    ((MyState \= down,
+        ((is_combat_action(Action),
+            damage(Action, Damage),
+            energy_gain(Action, EGain),
+            energy_cost(Action, ECost),
+            calculate_damage_ratio(Damage, DamageRatio),
+            calculate_energy_ratio(EGain, ECost, EnergyRatio),
+            opp_state(OppState, _, _), 
             (
-                (Y1 > Y2,
-                (HeightMult = 1.2)
+                (is_opp_stand(OppState),
+                    HeightMult is 1.5
                 );
-                (Y1 =< Y2,
-                    (HeightMult = 0.8)
+                (is_opp_crouch(OppState),
+                    HeightMult is 1.5
+                );
+                (is_opp_air(OppState),
+                    HeightMult is 1.2
+                );
+                (is_opp_down(OppState),
+                    HeightMult is 0.6
                 )
             ),
-            DistMult is (DistMultTemp * HeightMult + MyHP)
-        
-        ),
-        (
-            (action_makes_fly_opponent(Action),
-                FinalUtility is 1.8 * (DamageRatio + EnergyRatio) * DistMult
-            );
-            (action_downs_opponent(Action),
-                FinalUtility is 1.55 *(DamageRatio + EnergyRatio) * DistMult
-            );
-            (action_pushes_opponent(Action),
-                FinalUtility is 1.3 * (DamageRatio + EnergyRatio) * DistMult
-            );
-            ((\+action_makes_fly_opponent(Action), \+action_downs_opponent(Action), \+action_pushes_opponent(Action)),
-                FinalUtility is (DamageRatio + EnergyRatio) * DistMult)
-        )
-    );
-    (\+is_combat_action(Action),
-        
-        ((
-            (DistanceX > 500,
-                DistMult = 1.2
-            );
-            (DistanceX =< 500,
-                DistMult = 0.8
-            ) 
-        ),
-        (
-            (forward_move(Action),
-                FinalUtility is (0.8  * DistMult + MyHP) 
-            );
-            (backward_move(Action),
-                FinalUtility is (0.6  * DistMult + MyHP) 
-            );
-            (defend(Action),
-                FinalUtility is (0.5  * DistMult + MyHP) 
-            );
-            (Action = crouch,
-                FinalUtility is (0.7 * DistMult + MyHP) 
+
+            (
+                (DistanceX > 100,
+                    DistMultTemp = 1.5
+
+                );
+                (DistanceX =< 100,
+                    DistMultTemp = 0.8
+                )
+            ),
+            DistMult is (HeightMult + MyHP),
+            (
+                (action_makes_fly_opponent(Action),
+                    FinalUtility is 1.8 * (DamageRatio + EnergyRatio) * DistMult
+                );
+                (action_downs_opponent(Action),
+                    FinalUtility is 1.55 *(DamageRatio + EnergyRatio) * DistMult
+                );
+                (action_pushes_opponent(Action),
+                    FinalUtility is 1.3 * (DamageRatio + EnergyRatio) * DistMult
+                )
             )
-        ))           
+        );
+        (is_non_combat(Action),
+            
+            ((
+                (DistanceX > 500,
+                    DistMult = 1.2
+                );
+                (DistanceX =< 500,
+                    DistMult = 0.8
+                ) 
+            ),
+            (
+                (forward_move(Action),
+                    FinalUtility is (0.8  * DistMult + MyHP) 
+                );
+                (backward_move(Action),
+                    FinalUtility is (0.6  * DistMult + MyHP) 
+                );
+                (defend(Action),
+                    FinalUtility is (0.5  * DistMult + MyHP) 
+                );
+                (Action = crouch,
+                    FinalUtility is (0.7 * DistMult + MyHP) 
+                )
+            ))           
+        ))
+    );
+    (MyState = down,
+        FinalUtility is 0.0
     )).
 
 is_combat_action(Action) :-
-    (bs_action(Action); s_action(Action); ba_action(Action)).
+    bs_action(Action); ba_action(Action); s_action(Action).
 
-
+is_non_combat(Action) :-
+    m_action(Action); d_action(Action).
 
 find_my_best_action(BestAction, BestUtility) :-
     curr_pos(me, X1, Y1),
@@ -419,29 +371,34 @@ find_my_best_action(BestAction, BestUtility) :-
     prev_energy_value(me, MyPrevEnergy),
     energy_value(opponent, OppEnergy),
     prev_energy_value(opponent, OppPrevEnergy),
-    predict_opp_next_action_type(Type),
+    predict_opp_next_action_type(PredOppActionType),
     curr_hp_value(me, MyHP),
     prev_hp_value(me, MyPrevHP),
     curr_hp_value(opponent, OppHP),
     prev_hp_value(opponent, OppPrevHP),
-    my_prev_action(MyPrevAction),
-    find_best_k_prob_actions(3, MostProbableOppActions),
-    prev_action_type(opponent, OppPrevAction),
-    prev_action_type(me, MyPrevActionType),
+    prev_action(me, MyPrevAction),
+    prev_action(opponent, OppPrevAction),
+    find_best_k_prob_actions(5, MostProbableOppActions),
+    facing_dir(me, MyFDir),
+    hbox(opponent, OppHBox),
     possible_actions(
-        X1, X2, Y1, Y2, MyHP, MyPrevHP, OppHP, OppPrevHP, MyEnergy, MyPrevEnergy, 
-        OppEnergy, OppPrevEnergy, Type, OppPrevAction, MyPrevAction, MyPrevActionType, MostProbableOppActions, ActionList),
+        X1, X2, Y1, Y2, MyFDir, MyHP, MyPrevHP, OppHP, OppPrevHP, MyEnergy, MyPrevEnergy, 
+        OppEnergy, OppPrevEnergy, PredOppActionType, MyPrevAction, OppPrevAction, MostProbableOppActions,OppHBox, ActionList),
+    length(ActionList, L),
     (
-        (ActionList = [SingleAction],
+        (L =:= 1,
+            ActionList = [SingleAction],
             BestAction = SingleAction,
             BestUtility = 0.5
         );
-        (ActionList \= [SingleAction],
+        (L > 1,
             find_utilities(ActionList, UtilityList),
-            sort(UtilityList, SortedList),  
+            sort(UtilityList, SortedList),
             last(SortedList, BestUtility-BestAction)
         )
     ).
+      
+
 get_action_utility(Action, Utility-Action) :-
     action_utility(Action, Utility).
 
@@ -450,26 +407,15 @@ find_utilities(ActionList, UtilityList) :-
 
 
 
-P::actions_prob(A, C_A, N, P) :- 
+P::actions_prob(A, P) :- 
     count_action(A, C_A), 
     count_total_actions(N),
-    C_A =< N, P is C_A/N.
+    P is C_A/N.
 
-P::counter_with(stand_d_df_fa, air_d_db_ba, P) :- actions_prob(stand_d_df_fa, _, _, P).
-P::counter_with(stand_f_d_dfb, back_step, P) :- actions_prob(stand_f_d_dfb, _, _, P).
-P::counter_with(stand_d_db_bb, for_jump, P) :- actions_prob(stand_d_db_bb, _, _, P).
-P::counter_with(stand_fa, stand_d_df_fa, P) :- actions_prob(stand_fa, _, _, P).
-P::counter_with(crouch_fb, for_jump, P) :- actions_prob(crouch_fb, _, _, P).
-P::counter_with(crouch_fa, crouch_fb, P) :- actions_prob(crouch_fa, _, _, P).
-P::counter_with(stand_a, crouch_fb, P) :- actions_prob(stand_a, _, _, P). 
-P::counter_with(stand_a, stand_d_df_fa, P) :- actions_prob(stand_a, _, _, P).
-P::counter_with(stand_f_d_dfa, for_jump, P) :- actions_prob(stand_f_d_dfa, _, _, P).
-
-
-    
+  
 find_best_k_prob_actions(K, BestActions) :-
     
-    findall(Action-Prob, counter_with(Action, _, Prob), ActionList),
+    findall(Prob-Action, actions_prob(Action, Prob), ActionList),
     (
         ActionList = []; ActionList \= []
     ),
@@ -482,17 +428,14 @@ last(0, _, []).
 last(K, [H|T], [H|Rest]) :- K > 0, K1 is K-1, last(K1, T, Rest).
 
 
-% Query
-% query(get_my_best_action(BestAction, ActionList,FDir)).
+% Main Query
+query(find_my_best_action(BestAction, BestUtility)).
+% Debugging Queries
+% query(is_combat_action(stand_fa)).
 % query(opposite_facing_dir(me, opponent)).
 % query(predict_opp_next_action_type(Type)).
-query(find_my_best_action(BestAction, BestUtility)).
-% query(action_utility(for_jump, FinalUtility)).
-% query(find_utilities([stand_guard, crouch_guard, air_guard], UtilityList)).
-% query(get_penalty_prev_sel(stand_guard, Penalty)).
+% query(action_utility(stand_fa, FinalUtility)).
+% query(find_utilities([air_d_db_ba, stand_d_df_fa, stand_fb, stand_fa, crouch_fa, stand_a, air_b, air_da], UtilityList)).
 % query(find_best_k_prob_actions(3, BestActions)).
-
-
-% query(health(opponent, _, X)).
 
 
