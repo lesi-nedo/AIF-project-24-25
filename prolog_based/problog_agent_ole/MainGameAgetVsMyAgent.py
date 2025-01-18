@@ -22,7 +22,7 @@ from monte_carlo_tree_search.MctsAi import MctsAi
 from StatsTracker import StatsTracker
 
 async def start_process(
-        host:str , port: int, character: str = "ZEN", game_number: int = 1, 
+        host:str , port: int, character: str = "ZEN", game_number: int = 1, keep_stats: bool = False, 
         plot_scenes: bool = False, simo_agent: bool = False, marco_agent: bool = False, fightice_agent: bool = False
     ):
 
@@ -40,8 +40,11 @@ async def start_process(
     if fightice_agent:
         name_agent = "MctsAi23i"
 
-    stats_tracker= StatsTracker(name_agent, "ProblogAgent")
-    a2 = ProblogAgent(plot_scenes=plot_scenes, stats_tracker=stats_tracker)
+    if keep_stats:
+        stats_tracker= StatsTracker(name_agent, "ProblogAgent")
+        a2 = ProblogAgent(plot_scenes=plot_scenes, stats_tracker=stats_tracker)
+    else:
+        a2 = ProblogAgent(plot_scenes=plot_scenes)
     gateway.register_ai("ProblogAgent", a2)
     await gateway.run_game([character, character], [name_agent,"ProblogAgent"], game_number)
     
