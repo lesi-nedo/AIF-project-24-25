@@ -7,6 +7,7 @@ from problog.logic import Term
 from problog.logic import term2str
 from operator import add
 import pandas as pd
+import os
 from mappings import actions_type
 rng = np.random.default_rng()
 
@@ -114,8 +115,8 @@ counteractive_actions = {
     Term("stand_f_d_dfa"): (Term("for_jump"),1),
 }
 counteractive_actions['total'] = 1
-
-motion_data = pd.read_csv("prolog_based/problog_agent_ole/Motion.csv")
+current_dir = os.path.dirname(os.path.abspath(__file__))
+motion_data = pd.read_csv(os.path.join(current_dir,"Motion.csv"))
 motion_data['motionName'] = motion_data['motionName'].apply(lambda x: x.lower())
 motion_data = motion_data.set_index('motionName')
 damage_amounts = motion_data['attack.HitDamage'].to_dict()

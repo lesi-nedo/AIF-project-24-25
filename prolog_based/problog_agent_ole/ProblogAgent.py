@@ -107,11 +107,11 @@ class ProblogAgent(AIInterface):
         self.round_results: dict[int, str|None] = {1: None, 2: None, 3: None}
 
         self.durations: dict[int, float] = {1: 0.0, 2: 0.0, 3: 0.0}
-
+        self.current_dir = os.path.dirname(os.path.abspath(__file__))
         self.time_taken: dict[int, list[float]] = {1: [], 2: [], 3: []}
         self.prefix = "./prolog_based/problog_agent_ole/"
         self.kb_rules_file_name = "KB_V1.pl"
-        self.kb_path_rules = self.prefix + self.kb_rules_file_name
+        self.kb_path_rules =os.path.join(self.current_dir, self.kb_rules_file_name)
         self.screen_data_raw = None
         self.echo = typer.echo
         self.width_game = 960
