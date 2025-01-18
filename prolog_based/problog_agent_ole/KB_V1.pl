@@ -273,7 +273,7 @@ calculate_energy_ratio(EGain, ECost, EnergyRatio) :-
     EnergyRatio is GainRatio - CostRatio.
 
 
-max_dist_y(20).
+max_dist_y(100).
 
 action_utility(Action, FinalUtility) :-
     curr_pos(me, X1, Y1),
@@ -343,7 +343,15 @@ action_utility(Action, FinalUtility) :-
                     FinalUtility is (0.8  * DistMult + MyHP) 
                 );
                 (backward_move(Action),
-                    FinalUtility is (0.6  * DistMult + MyHP) 
+                    curr_energy_value(me, MyEnergy),
+                    (
+                        (MyEnergy >= 150,
+                            FinalUtility is (2.5  * DistMult + MyHP)
+                        );
+                        (MyEnergy < 150,
+                            FinalUtility is (0.6  * DistMult + MyHP)
+                        )
+                    )
                 );
                 (defend(Action),
                     FinalUtility is (0.5  * DistMult + MyHP) 
@@ -367,9 +375,9 @@ is_non_combat(Action) :-
 find_my_best_action(BestAction, BestUtility) :-
     curr_pos(me, X1, Y1),
     curr_pos(opponent, X2, Y2),
-    energy_value(me, MyEnergy),
+    curr_energy_value(me, MyEnergy),
     prev_energy_value(me, MyPrevEnergy),
-    energy_value(opponent, OppEnergy),
+    curr_energy_value(opponent, OppEnergy),
     prev_energy_value(opponent, OppPrevEnergy),
     predict_opp_next_action_type(PredOppActionType),
     curr_hp_value(me, MyHP),

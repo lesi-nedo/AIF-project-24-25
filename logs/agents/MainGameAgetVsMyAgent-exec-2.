@@ -1,0 +1,15 @@
+Project root: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25-M
+Starting the process with host: 127.0.0.1, port: 35468
+2025-01-18 12:34:05,166 - INFO - Start P2 AI controller task (ProblogAgent)
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Mean time taken: 0.07357463246214904
+ My hp left: 155, Opponent hp left: 206
+Mean time taken: 0.07293871470860072
+ My hp left: 170, Opponent hp left: 86
+Mean time taken: 0.07742505536496061
+ My hp left: 305, Opponent hp left: 232
+Game End
+2025-01-18 12:37:13,855 - INFO - Closing ProblogAgent
+Saving stats to path: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25-M/prolog_based/problog_agent_ole/stats

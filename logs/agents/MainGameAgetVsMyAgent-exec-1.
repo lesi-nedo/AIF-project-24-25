@@ -1,0 +1,33 @@
+Project root: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25-M
+Starting the process with host: 127.0.0.1, port: 35467
+2025-01-18 12:34:03,173 - INFO - Start P2 AI controller task (ProblogAgent)
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Mean time taken: 0.06853050291538239
+ My hp left: 156, Opponent hp left: 142
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Mean time taken: 0.06391781369106476
+ My hp left: 0, Opponent hp left: 78
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+2025-01-18 12:37:08,009 - INFO - Closing ProblogAgent
+Saving stats to path: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25-M/prolog_based/problog_agent_ole/stats

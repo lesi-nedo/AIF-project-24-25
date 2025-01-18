@@ -1,0 +1,20 @@
+Project root: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25-M
+Starting the process with host: 127.0.0.1, port: 38019
+2025-01-18 12:28:02,830 - INFO - Start P1 AI controller task (MctsAi)
+2025-01-18 12:28:02,830 - INFO - Start P2 AI controller task (ProblogAgent)
+2025-01-18 12:28:02,968 - INFO - initialize
+Mean time taken: 0.13180452367685136
+ My hp left: 102, Opponent hp left: 60
+2025-01-18 12:29:04,328 - INFO - round end: RoundResult(current_round=1, remaining_hps=[60, 102], elapsed_frame=3600)
+2025-01-18 12:29:59,616 - INFO - round end: RoundResult(current_round=2, remaining_hps=[0, 188], elapsed_frame=3171)
+Mean time taken: 0.12012196124944471
+ My hp left: 188, Opponent hp left: 0
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+2025-01-18 12:31:00,051 - INFO - Closing MonteCarlo Agent
+2025-01-18 12:31:00,053 - INFO - Closing ProblogAgent
+Saving stats to path: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25-M/prolog_based/problog_agent_ole/stats

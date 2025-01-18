@@ -70,55 +70,54 @@ class ProblogAgent(AIInterface):
     def __init__(self, k_best_value: int = 5, plot_scenes: bool = False, width: int = 960, height: int = 640, **kwargs):
         # time.sleep(20)
         super().__init__()
-        self.MULTIPLIER = 14
+        self.MULTIPLIER = 4
         self.blind_flag = False
         self.width = width
         self.height = height
         self.play_number: bool
-        self.game_data: GameData
-        self.frame_data: FrameData
-        self.my_actions: list[Action] = []
-        self.opponent_actions: list[Action] = []
-        self.opponent_actions_type: list[Action] = ["non_attack"]
-        self.my_actions_type: list[str] = ["non_attack"]
-        self.my_state = [Action.STAND.value]
-        self.opponent_state = [Action.STAND.value]
-        self.my_curr_pos = [(0, 0)]
-        self.opponent_curr_pos = [(0, 0)]
+        self.game_data: GameData 
+        self.cc = CommandCenter()
         self.plot_scenes = plot_scenes
-        self.cc: CommandCenter
-        self.key: Key
         self.empty_key_dict = Key().to_dict()
         self.my_character_data: CharacterData
         self.opponent_character_data: CharacterData
         self.is_control = False
-        self.opponent_hps = []
-        self.my_hps = []
-        self.opponent_energy = [0]
-        self.my_energy = [0]
+        self.my_curr_pos: dict[int, list[tuple[int,int]]] = {}
+        self.opponent_curr_pos: dict[int, list[tuple[int,int]]] = {}
+        self.my_hboxes: dict[Dict[str, int]] = {}
+        self.opponent_hboxes: dict[Dict[str, int]] = {}
+        self.my_actions_inferred: dict[int, list[Action]] = {1: [], 2: [], 3: []}
         self.kb = ""
         self.engine = DefaultEngine()
         self.k_best_value = k_best_value
         self.db_org = None
-        self.count_frames = 0
         self.sent = False
-        self.time_taken = []
-        self.enough = False
+        self.my_actions: dict[int, list[Action]] = {1: [Action.STAND.value], 2: [Action.STAND.value], 3: [Action.STAND.value]}
+        self.opponent_actions: dict[int, list[Action]] = {1: [Action.STAND.value], 2: [Action.STAND.value], 3: [Action.STAND.value]}
+        self.opponent_actions_type: dict[int, list[Action]] = {1: ["non_attack"], 2: ["non_attack"], 3: ["non_attack"]}
+        self.my_actions_type: dict[int, list[Action]] = {1: ["non_attack"], 2: ["non_attack"], 3: ["non_attack"]}
+        self.my_state: dict[int, list[Action]] = {1: [Action.STAND.value], 2: [Action.STAND.value], 3: [Action.STAND.value]}
+        self.opponent_state: dict[int, list[Action]] = {1: [Action.STAND.value], 2: [Action.STAND.value], 3: [Action.STAND.value]}
+        self.opponent_speed: dict[int, list[tuple[int,int]]] = {1: [(0, 0)], 2: [(0, 0)], 3: [(0, 0)]}  
+        self.opponent_energy: dict[int, list[int]] = {1: [0], 2: [0], 3: [0]}
+        self.my_energy: dict[int, list[int]] = {1: [0], 2: [0], 3: [0]}
+        self.opponent_hps: dict[int, list[int]] = {}
+        self.my_hps: dict[int, list[int]] = {}
+        self.count_frames = 0
+        self.round_results: dict[int, str|None] = {1: None, 2: None, 3: None}
+
+        self.durations: dict[int, float] = {1: 0.0, 2: 0.0, 3: 0.0}
+
+        self.time_taken: dict[int, list[float]] = {1: [], 2: [], 3: []}
         self.prefix = "./prolog_based/problog_agent_ole/"
         self.kb_rules_file_name = "KB_V1.pl"
         self.kb_path_rules = self.prefix + self.kb_rules_file_name
-        self.my_hboxes = []
-        self.opponent_hboxes = []
         self.screen_data_raw = None
         self.echo = typer.echo
         self.width_game = 960
         self.height_game = 640
-        self.counter_evds = []
-        # self.motion_data = pd.read_csv(self.prefix + "motion_data.csv")
-        # self.motion_data['motionName'] = self.motion_data['motionName'].apply(lambda x: x.lower()).astype(str)
         self.k_most_prob_actions = 4
-        self.countered_prev_action = Action.STAND_FB.value
-        self.rounds = 3
+        self.current_round = 1
         self.aggressive_action = False
         # Initialize plot on first frame if not already done
         if self.plot_scenes:
@@ -174,7 +173,6 @@ class ProblogAgent(AIInterface):
         self.counter_actions = {}
         self.counter_actions_total = 1
         self.clauses_to_add = dict()
-        self.best_actions_clauses = dict()
 
         self.select_box_side = {
             0: "left",
@@ -216,56 +214,41 @@ class ProblogAgent(AIInterface):
     def to_string(self):
         return self.name()
     
-    def _init_vars(self):
-        self.cc = CommandCenter()
+    def _init_attributes(self):
         self.key = Key()
-        self.opponent_number = abs(1 - self.my_number)
         self.frame_data = FrameData()
-        self.my_hps = [self.game_data.max_hps[self.my_number]]
-        self.opponent_hps = [self.game_data.max_hps[self.opponent_number]]
-        self.opponent_energy = [0]
-        self.my_energy = [0]
-        self.time_taken = []
-        self.my_actions: list[Action] = []
-        self.opponent_actions: list[Action] = []
-        self.opponent_actions_type: list[str] = ["non_attack"]
-        self.my_actions_type: list[str] = ["non_attack"]
-        self.my_state = [Action.STAND.value]
-        self.opponent_state = [Action.STAND.value]
-        self.my_hboxes.append(self.default_hbox.get(self.my_number))
-        self.opponent_hboxes.append(self.default_hbox.get(self.opponent_number))
-        self.aggressive_action = False
-        self.my_curr_pos = [self.default_positions.get(self.my_number)]
-        self.opponent_curr_pos = [self.default_positions.get(self.opponent_number)]
-        
+
+        self.my_curr_pos = {1: [self.default_positions.get(self.my_number)], 2: [self.default_positions.get(self.my_number)], 3: [self.default_positions.get(self.my_number)]}
+        self.opponent_curr_pos = {1: [self.default_positions.get(self.opponent_number)], 2: [self.default_positions.get(self.opponent_number)], 3: [self.default_positions.get(self.opponent_number)]}
+        self.my_hboxes = {1: [self.default_hbox.get(self.my_number)], 2: [self.default_hbox.get(self.my_number)], 3: [self.default_hbox.get(self.my_number)]}
+        self.opponent_hboxes = {1: [self.default_hbox.get(self.opponent_number)], 2: [self.default_hbox.get(self.opponent_number)], 3: [self.default_hbox.get(self.opponent_number)]}
+        self.opponent_hps = {1: [self.game_data.max_hps[self.opponent_number]], 2: [self.game_data.max_hps[self.opponent_number]], 3: [self.game_data.max_hps[self.opponent_number]]}
+        self.my_hps = {1: [self.game_data.max_hps[self.my_number]], 2: [self.game_data.max_hps[self.my_number]], 3: [self.game_data.max_hps[self.my_number]]}
 
         self.db_enriched = self.db_org.extend()
 
         my_prev_action = f"prev_action(me, {Action.STAND.value}).\n"
         opponent_prev_action = f"prev_action(opponent, {Action.STAND.value}).\n"
-        me_str_hp = f"curr_hp_value(me, {self.my_hps[0]}).\n"
-        me_str_energy = f"curr_energy_value(me, {self.my_energy[0]}).\n"
-        opponent_str_hp = f"curr_hp_value(opponent, {self.opponent_hps[0]}).\n"
-        opponent_str_energy = f"curr_energy_value(opponent, {self.opponent_energy[0]}).\n"
+        me_str_hp = f"curr_hp_value(me, {self.my_hps[self.current_round][0]}).\n"
+        me_str_energy = f"curr_energy_value(me, {self.my_energy[self.current_round][0]}).\n"
+        opponent_str_hp = f"curr_hp_value(opponent, {self.opponent_hps[self.current_round][0]}).\n"
+        opponent_str_energy = f"curr_energy_value(opponent, {self.opponent_energy[self.current_round][0]}).\n"
         count_state_opponent, count_total_states_opponent = f"count_state({Action.STAND.value}, {self.counters['opponent']['stand']}).\n", f"count_total_states({self.counters['opponent']['total']}).\n"
         my_facing_dir = f"facing_dir(me, {self.default_dir.get(self.my_number)}).\n"
         opponent_facing_dir = f"facing_dir(opponent, {self.default_dir.get(self.opponent_number)}).\n"
-        me_curr_pos = f"1.0::curr_pos(me, {self.my_curr_pos[0][0]}, {self.my_curr_pos[0][1]}).\n"
-        opponent_curr_pos = f"0.9::curr_pos(opponent, {self.opponent_curr_pos[0][0]}, {self.opponent_curr_pos[0][1]}).\n"
+        me_curr_pos = f"1.0::curr_pos(me, {self.my_curr_pos[self.current_round][0][0]}, {self.my_curr_pos[self.current_round][0][1]}).\n"
+        opponent_curr_pos = f"0.9::curr_pos(opponent, {self.opponent_curr_pos[self.current_round][0][0]}, {self.opponent_curr_pos[self.current_round][0][1]}).\n"
         my_state = f"my_state({Action.STAND.value}).\n"
-        opponent_prev_energy = f"prev_energy_value(opponent, {self.opponent_energy[0]}).\n"
-        me_prev_energy = f"prev_energy_value(me, {self.my_energy[0]}).\n"
+        opponent_prev_energy = f"prev_energy_value(opponent, {self.opponent_energy[self.current_round][0]}).\n"
+        me_prev_energy = f"prev_energy_value(me, {self.my_energy[self.current_round][0]}).\n"
         counter_action = f"count_action({Action.STAND_FA.value}, 1).\n"
         counter_total_actions = f"count_total_actions(1).\n"
-        my_prev_health = f"prev_hp_value(me, {self.my_hps[0]}).\n"
-        my_prev_energy = f"prev_energy_value(me, {self.my_energy[0]}).\n"
-        opponent_prev_health = f"prev_hp_value(opponent, {self.opponent_hps[0]}).\n"
-        opponent_prev_energy = f"prev_energy_value(opponent, {self.opponent_energy[0]}).\n"
-        # my_hbox = f"hbox(me, [{self.my_hboxes[0]['left']}, {self.my_hboxes[0]['right']}, {self.my_hboxes[0]['top']}, {self.my_hboxes[0]['bottom']}]).\n"
-        opponent_hbox = f"hbox(opponent, [{self.opponent_hboxes[0]['left']}, {self.opponent_hboxes[0]['right']}, {self.opponent_hboxes[0]['top']}, {self.opponent_hboxes[0]['bottom']}]).\n"
+        my_prev_health = f"prev_hp_value(me, {self.my_hps[self.current_round][0]}).\n"
+        my_prev_energy = f"prev_energy_value(me, {self.my_energy[self.current_round][0]}).\n"
+        opponent_prev_health = f"prev_hp_value(opponent, {self.opponent_hps[self.current_round][0]}).\n"
+        opponent_prev_energy = f"prev_energy_value(opponent, {self.opponent_energy[self.current_round][0]}).\n"
+        opponent_hbox = f"hbox(opponent, [{self.opponent_hboxes[self.current_round][0]['left']}, {self.opponent_hboxes[self.current_round][0]['right']}, {self.opponent_hboxes[self.current_round][0]['top']}, {self.opponent_hboxes[self.current_round][0]['bottom']}]).\n"
 
-        self.count_frames = 0
-        self.countered_prev_action = Action.STAND_FB.value
 
         str_concat = "\n".join([
             me_str_hp, me_str_energy, opponent_str_hp, opponent_str_energy,
@@ -289,11 +272,6 @@ class ProblogAgent(AIInterface):
         self.opponent_number = abs(1 - self.my_number)
         self.game_data = game_data 
         self.frame_data = FrameData()
-
-        if self.stats_tracker:
-            self.stats_tracker.start_new_match()
-            self.stats_tracker.start_new_round(self.rounds)
-        self.round_start_time = datetime.now()
         self.last_hp = game_data.max_hps[self.my_number]
         self.last_opponent_hp = game_data.max_hps[self.opponent_number]
         
@@ -314,7 +292,7 @@ class ProblogAgent(AIInterface):
             logger.error("File not found")
             raise 
         
-        self._init_vars()
+        self._init_attributes()
 
         
     def get_non_delay_frame_data(self, frame_data: FrameData):
@@ -331,6 +309,7 @@ class ProblogAgent(AIInterface):
         self.opponent_character_data = self.frame_data.get_character(self.opponent_number)
         self.cc.set_frame_data(self.frame_data, self.my_number)
         self.is_control = is_control
+        self.current_round = self.frame_data.current_round
 
         
 
@@ -431,48 +410,73 @@ class ProblogAgent(AIInterface):
         if self.frame_data.empty_flag or self.frame_data.current_frame_number <= 0:
             return
         
+        self.durations[self.current_round] += self.frame_data.current_frame_number
+        if not  self.my_character_data.control:
+            self.count_frames += 1
+        else:
+            self.count_frames = 0
+        
         if self.cc.get_skill_flag():
             self.sent = True
-            self.key = self.cc.get_skill_key()
+            self.key = self.cc.get_skill_key()       
         
-        elif not self.my_character_data.attack_data.is_live:
+        else:
             self.key.empty()
             self.cc.skill_cancel()
+            current_round = self.frame_data.current_round
+            opponent_actions_type_list = self.opponent_actions_type[current_round]
+            opponent_actions_type_list.append(self.estimate_opponent_action())
             # prev action types
-            self.opponent_actions_type.append(self.estimate_opponent_action())
-            self.my_actions_type.append(self.estimate_my_action())
+            my_actions_type_list = self.opponent_actions_type[current_round]
+            my_actions_type_list.append(self.estimate_my_action())
             # updating counters based on prev opponent action type
-            self.aggressive_action = self.opponent_actions_type[-1] == "attack" or self.opponent_actions_type[-1] == "special"
+            self.aggressive_action = opponent_actions_type_list[-1] == "attack" or opponent_actions_type_list[-1] == "special"
             if self.aggressive_action:
                 self.counter_actions.update({self.opponent_character_data.action.value: self.counter_actions.get(self.opponent_character_data.action.value, 0) + 1})
                 self.counter_actions_total += 1
 
             # state update
-            self.my_state.append(self.my_character_data.state)
-            self.opponent_state.append(self.opponent_character_data.state)
+            my_state_list = self.my_state[current_round]
+            my_state_list.append(self.my_character_data.state)
+            opponent_state_list = self.opponent_state[current_round]
+            opponent_state_list.append(self.opponent_character_data.state)
             # action update
-            self.my_actions.append(self.my_character_data.action.value)
-            self.opponent_actions.append(self.opponent_character_data.action.value)
+            my_actions_list = self.my_actions[current_round]
+            my_actions_list.append(self.my_character_data.action.value)
+            my_opponent_actions_list = self.opponent_actions[current_round]
+            my_opponent_actions_list.append(self.opponent_character_data.action.value)
             # hp and energy update
-            self.opponent_hps.append(self.opponent_character_data.hp)
-            self.my_hps.append(self.my_character_data.hp)
-            self.opponent_energy.append(self.opponent_character_data.energy)
-            self.my_energy.append(self.my_character_data.energy)
+            opponent_hp_list = self.opponent_hps[current_round]
+            opponent_hp_list.append(self.opponent_character_data.hp)
+            my_hp_list = self.my_hps[current_round]
+            my_hp_list.append(self.my_character_data.hp)
+            opponent_energy_list = self.opponent_energy[current_round]
+            opponent_energy_list.append(self.opponent_character_data.energy)
+            my_energy_list = self.my_energy[current_round]
+            my_energy_list.append(self.my_character_data.energy)
+            opponent_speed_list = self.opponent_speed[current_round]
+            pred_speed_x = + int(self.opponent_character_data.speed_x*1.1 if opponent_speed_list[-1][0] <  self.opponent_character_data.speed_x else + self.opponent_character_data.speed_x * 0.9)
+            pred_speed_y = + int(self.opponent_character_data.speed_y*1.1 if opponent_speed_list[-1][1] <  self.opponent_character_data.speed_y else + self.opponent_character_data.speed_y * 0.9)
             # estimate opponent position
-            px = (self.opponent_character_data.attack_data.impact_x + self.opponent_character_data.speed_x)
-            py = (self.opponent_character_data.attack_data.impact_y + self.opponent_character_data.speed_y)
+            px = pred_speed_x
+            py = pred_speed_y
+            if self.my_character_data.hit_confirm:
+                px += self.opponent_character_data.attack_data.impact_x 
+                py += self.opponent_character_data.attack_data.impact_y 
+            opponent_speed_list.append((self.opponent_character_data.speed_x, self.opponent_character_data.speed_y))
+                
+
             facing_dir = self.default_dir.get(self.opponent_character_data.front)
             left = self.opponent_character_data.left
             right = self.opponent_character_data.right
             top = self.opponent_character_data.top
             bottom = self.opponent_character_data.bottom
+
+            px *= int(facing_dir*self.count_frames)
+            py *= int(facing_dir*self.count_frames)
+
             x = self.opponent_character_data.x
             y = self.opponent_character_data.y
-            multiplier = int(facing_dir*self.MULTIPLIER)
-            px *= multiplier
-            py *= multiplier
-
-           
             pred_pos_x = min(max(0, x+px), self.width_game)
             pred_pos_y = min(max(0, y+py), self.height_game)
             pred_left = min(max(0, left+px), self.width_game)
@@ -480,17 +484,20 @@ class ProblogAgent(AIInterface):
             pred_top = min(max(0, top+py), self.height_game)
             pred_bottom = min(max(0, bottom+py), self.height_game)
 
-            self.opponent_hboxes.append({
+            opponent_hboxes_list = self.opponent_hboxes[current_round]
+            opponent_hboxes_list.append({
                 "left": pred_left,
                 "right": pred_right,
                 "top": pred_top,
                 "bottom": pred_bottom
             })
-            self.opponent_curr_pos.append((pred_pos_x, pred_pos_y))
+            opponent_curr_pos_list = self.opponent_curr_pos[current_round]
+            opponent_curr_pos_list.append((pred_pos_x, pred_pos_y))
 
             x = self.my_character_data.x
             y = self.my_character_data.y
-            self.my_curr_pos.append((x, y))
+            my_curr_pos_list = self.my_curr_pos[current_round]
+            my_curr_pos_list.append((x, y))
             
             self._increment_counter('me', self.my_character_data.state.value)
             self._increment_counter('opponent', self.opponent_character_data.state.value)
@@ -499,27 +506,24 @@ class ProblogAgent(AIInterface):
             before_exec = time.time()
             db = self._add_to_db_hp_energy_state()
             lf = self.engine.ground_all(
-                db,
-                evidence=[
-                    # *self.counter_evds
-                ]
+                db
             )
             
             self.sdd_formula = self.sdd.create_from(lf)
             result = self.sdd_formula.evaluate()
 
             after_exec = time.time()
-            self.time_taken.append(after_exec - before_exec)
+            time_taken_list = self.time_taken[current_round]
+            time_taken_list.append(after_exec - before_exec)
             # self.echo(f"Result: {result}\n\n\n")
             action_to_execute = self.select_action_from_problog_results(result)
-            # action_to_execute ="air_da"
+            # action_to_execute ="stand_fb"
             action_to_execute = action_to_execute.upper()
             self.cc.command_call(action_to_execute)
-
-            self.echo(f"Action to execute: {action_to_execute}")
-            
-                    
-    
+            my_actions_inferred_list = self.my_actions_inferred[current_round]
+            my_actions_inferred_list.append(action_to_execute)
+            # self.echo(f"Action to execute: {action_to_execute}")
+        
     def _get_opp_facing_dir_evd(self):
         my_facing_dr = self.my_character_data.front
         opp_facing_dir = self.opponent_character_data.front
@@ -529,7 +533,8 @@ class ProblogAgent(AIInterface):
         return (opp_facing_dir_evd, diff_facings)
     
     def _get_clause_approx_hit_confirm(self):
-        diff_hp = self.opponent_hps[-1] - self.opponent_character_data.hp
+        opponent_hps_list = self.opponent_hps[self.frame_data.current_round]
+        diff_hp = opponent_hps_list[-1] - self.opponent_character_data.hp
 
         hit_confirm = int(diff_hp > 0) or int(self.opponent_character_data.hit_confirm)
         return f"approx_hit_confirm({hit_confirm}).\n"
@@ -546,12 +551,15 @@ class ProblogAgent(AIInterface):
         return f"count_total_actions({total}).\n"
 
     def _get_clause_opp_action_type(self):
-        action_type = self.opponent_actions_type[-1]
+        opponent_actions_type_list = self.opponent_actions_type[self.frame_data.current_round]
+        action_type = opponent_actions_type_list[-1]
         return f"opp_action_type({action_type}).\n"
 
     def _get_clause_eng_hp(self, player: str):
-        str_hp = f"curr_hp_value({player}, {getattr(self, f'{self.name_conv.get(player)}_hps')[-1]})"
-        str_energy = f"curr_energy_value({player}, {getattr(self, f'{self.name_conv.get(player)}_energy')[-1]})"
+        hps_list = getattr(self, f'{self.name_conv.get(player)}_hps')[self.frame_data.current_round]
+        energy_list = getattr(self, f'{self.name_conv.get(player)}_energy')[self.frame_data.current_round]
+        str_hp = f"curr_hp_value({player}, {hps_list[-1]})"
+        str_energy = f"curr_energy_value({player}, {energy_list[-1]})"
         return f"{str_hp}.\n", f"{str_energy}.\n"
     
     def _get_clause_count_state(self, player: str):
@@ -559,15 +567,17 @@ class ProblogAgent(AIInterface):
         return f"count_state({character.state.value}, {self.counters[player][character.state.value]}).\n", f"count_total_states({self.counters[player]['total']}).\n"
     
     def _get_clause_prev_hp_energy(self, player: str):
-        prev_hp = getattr(self, f"{self.name_conv.get(player)}_hps")[-2]
-        prev_energy = getattr(self, f"{self.name_conv.get(player)}_energy")[-2] 
+        prev_hp_list =  getattr(self, f"{self.name_conv.get(player)}_hps")[self.frame_data.current_round]
+        prev_energy_list = getattr(self, f"{self.name_conv.get(player)}_energy")[self.frame_data.current_round]
+        prev_hp =prev_hp_list[-2]
+        prev_energy = prev_energy_list[-2] 
         return f"prev_hp_value({player}, {prev_hp}).\n", f"prev_energy_value({player}, {prev_energy}).\n"
     
     
     def _get_clause_curr_pos(self, player: str):
-        curr_pos = getattr(self, f"{self.name_conv.get(player)}_curr_pos")[-1]
+        curr_pos_list = getattr(self, f"{self.name_conv.get(player)}_curr_pos")[self.frame_data.current_round]
         prob = 0.9
-        return f"{prob}::curr_pos({player}, {curr_pos[0]}, {curr_pos[1]}).\n"
+        return f"{prob}::curr_pos({player}, {curr_pos_list[-1][0]}, {curr_pos_list[-1][1]}).\n"
     
     def _get_clause_facing_dir(self, player: str):
         curr_facing_dir = getattr(self, f"{self.name_conv.get(player)}_character_data").front
@@ -578,12 +588,12 @@ class ProblogAgent(AIInterface):
         return f"my_state({self.my_character_data.state.value}).\n"
     
     def _get_hbox_clause(self, player: str):
-        hbox = getattr(self, f"{self.name_conv.get(player)}_hboxes")[-1]
-        return f"hbox({player}, [{hbox['left']}, {hbox['right']}, {hbox['top']}, {hbox['bottom']}]).\n"
+        hboxes_list = getattr(self, f"{self.name_conv.get(player)}_hboxes")[self.frame_data.current_round]
+        return f"hbox({player}, [{hboxes_list[-1]['left']}, {hboxes_list[-1]['right']}, {hboxes_list[-1]['top']}, {hboxes_list[-1]['bottom']}]).\n"
     
     def _get_clause_prev_action(self, player: str):
-        prev_action = getattr(self, f"{self.name_conv.get(player)}_actions")[-1]
-        return f"prev_action({player},{prev_action}).\n"
+        prev_action_list = getattr(self, f"{self.name_conv.get(player)}_actions")[self.frame_data.current_round]
+        return f"prev_action({player},{prev_action_list[-1]}).\n"
         
     
     def _add_to_db_hp_energy_state(self):
@@ -649,29 +659,22 @@ class ProblogAgent(AIInterface):
         
 
     def round_end(self, round_result: RoundResult):
-        mean_time = np.mean(self.time_taken)
+        mean_time = np.mean(self.time_taken[self.current_round])
         self.echo(f"Mean time taken: {mean_time}")
         self.echo(f" My hp left: {round_result.remaining_hps[self.opponent_number]}, Opponent hp left: {round_result.remaining_hps[self.my_number]}")
-        self.rounds -= 1
-        if self.stats_tracker:
-            my_final_hp = round_result.remaining_hps[self.opponent_number]# they inverse the index, probably a bug
-            opponent_final_hp = round_result.remaining_hps[self.my_number]
-            value = "draw"
-            if my_final_hp > opponent_final_hp:
-                value = "win"
-            elif my_final_hp < opponent_final_hp:
-                value = "loss"
-            self.my_hps.append(round_result.remaining_hps[self.opponent_number])
-            self.opponent_hps.append(round_result.remaining_hps[self.my_number]) 
-            self.stats_tracker.update_round_stats(self.my_actions, self.my_hps, self.opponent_hps, self.my_energy)
-            self.stats_tracker.end_round(value, (datetime.now() - self.round_start_time).seconds, mean_time, round_result.elapsed_frame)
-            self.echo(f"Final result: {value}")
-            if self.rounds > 0:
-                self.stats_tracker.start_new_round(self.rounds)
-                self.round_start_time = datetime.now()
-        
-        self._init_vars()
+        my_final_hp = round_result.remaining_hps[self.opponent_number]# they inverse the index, probably a bug
+        opponent_final_hp = round_result.remaining_hps[self.my_number]
+        value = "draw"
+        if my_final_hp > opponent_final_hp:
+            value = "win"
+        elif my_final_hp < opponent_final_hp:
+            value = "loss"
 
+        self.round_results[self.current_round] = value
+        self.my_hps[self.current_round].append(my_final_hp)
+        self.opponent_hps[self.current_round].append(opponent_final_hp)
+        
+        
     def get_screen_data(self, screen_data: ScreenData):
         if self.plot_scenes and hasattr(self, 'display_thread') and screen_data.display_bytes:
             try:
@@ -696,8 +699,29 @@ class ProblogAgent(AIInterface):
 
 
     def game_end(self):
-        pass
+        self.echo("Game End")
+    
+    def to_dict(self):
+        return {
+            "name": self.name(),
+            "my_actions_inferred": self.my_actions_inferred,
+            "my_actions_executed": self.my_actions,
+            "my_state": self.my_state,
+            "opponent_state": self.opponent_state,
+            "opponent_energy": self.opponent_energy,
+            "my_energy": self.my_energy,
+            "opponent_hps": self.opponent_hps,
+            "my_hps": self.my_hps,
+            "round_results": self.round_results,
+            "time_taken": self.time_taken,
+            "num_rounds": self.current_round,
+            "durations": self.durations,
+        }
+
     def close(self):
+        if self.stats_tracker:
+            dict_attr = self.to_dict()
+            self.stats_tracker.save_stats(dict_attr)
         logger.info("Closing ProblogAgent")
         if hasattr(self, 'display_thread'):
             self.display_thread.stop()

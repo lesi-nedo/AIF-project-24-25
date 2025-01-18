@@ -1,0 +1,18 @@
+Project root: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25-M
+Starting the process with host: 127.0.0.1, port: 26226
+2025-01-18 12:29:39,209 - INFO - Start P1 AI controller task (PrologAI)
+2025-01-18 12:29:39,209 - INFO - Start P2 AI controller task (ProblogAgent)
+2025-01-18 12:29:39,311 - INFO - initialize
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Mean time taken: 0.09424361531584904
+ My hp left: 348, Opponent hp left: 0
+2025-01-18 12:30:22,461 - INFO - round end: RoundResult(current_round=1, remaining_hps=[0, 348], elapsed_frame=2447)
+2025-01-18 12:31:10,524 - INFO - round end: RoundResult(current_round=2, remaining_hps=[0, 286], elapsed_frame=2882)
+Mean time taken: 0.09362526675713875
+ My hp left: 286, Opponent hp left: 0
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+2025-01-18 12:31:57,960 - INFO - Closing ProblogAgent
+Saving stats to path: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25-M/prolog_based/problog_agent_ole/stats
+WARNING: Failed to stop Prolog threads. Not reclaming memory.

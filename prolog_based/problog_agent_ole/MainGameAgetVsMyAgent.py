@@ -23,26 +23,27 @@ from StatsTracker import StatsTracker
 
 async def start_process(
         host:str , port: int, character: str = "ZEN", game_number: int = 1, 
-        plot_scenes: bool = False, agent_simo: bool = False, agent_marco: bool = True, agent_fightice: bool = False
+        plot_scenes: bool = False, simo_agent: bool = False, marco_agent: bool = False, fightice_agent: bool = False
     ):
+
+
     gateway = Gateway(host, port)
-    
-    stats_tracker = None
-    if agent_simo:
+        
+    if simo_agent:
         a1 = PrologAI()
         gateway.register_ai("PrologAI", a1)
         name_agent = "PrologAI"
-    if agent_marco:
+    if marco_agent:
         a1 = MctsAi(exploration_constant=np.sqrt(2), iteration_limit=3)
         gateway.register_ai("MctsAi", a1)
         name_agent = "MctsAi"
-        stats_tracker= StatsTracker("MctsAi", "ProblogAgent")
-        a2 = ProblogAgent(plot_scenes=plot_scenes, stats_tracker=stats_tracker)
-        gateway.register_ai("ProblogAgent", a2)
-    if agent_fightice:
+    if fightice_agent:
         name_agent = "MctsAi23i"
-    await gateway.run_game([character, character], [name_agent,"ProblogAgent"], game_number)
 
+    stats_tracker= StatsTracker(name_agent, "ProblogAgent")
+    a2 = ProblogAgent(plot_scenes=plot_scenes, stats_tracker=stats_tracker)
+    gateway.register_ai("ProblogAgent", a2)
+    await gateway.run_game([character, character], [name_agent,"ProblogAgent"], game_number)
     
     # a1 = MinimaxAI()
     # gateway.register_ai("MinimaxAI", a1)
@@ -67,7 +68,7 @@ def main(
     ):
     
     typer.echo(f"Starting the process with host: {host}, port: {port}")
-    asyncio.run(start_process(host, port, plot_scenes=plot_scenes))
+    asyncio.run(start_process(host, port, plot_scenes=plot_scenes, fightice_agent=True))
     
 
 if __name__ == '__main__':
