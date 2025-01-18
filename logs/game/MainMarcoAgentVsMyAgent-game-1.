@@ -47,3 +47,41 @@ Jan 18, 2025 4:10:58 PM aiinterface.ThreadController startAI
 INFO: Start P2 AI controller thread
 Jan 18, 2025 4:10:59 PM util.ResourceDrawer <init>
 INFO: Create instance: util.ResourceDrawer
+Jan 18, 2025 4:11:55 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 55.908 seconds (Expected 55.900)
+Jan 18, 2025 4:12:56 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 60.000 seconds (Expected 60.000)
+Jan 18, 2025 4:13:36 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 38.850 seconds (Expected 38.850)
+Jan 18, 2025 4:13:36 PM gamescene.Play update
+INFO: Game over
+Jan 18, 2025 4:13:41 PM gamescene.Socket initialize
+INFO: Waiting to launch a game
+Jan 18, 2025 4:13:42 PM service.SocketServer lambda$startServer$0
+INFO: Received run game request
+Jan 18, 2025 4:13:42 PM service.SocketServer lambda$startServer$0
+INFO: Client connected as Game Playing AI
+Jan 18, 2025 4:13:42 PM service.SocketServer lambda$startServer$0
+INFO: Client connected as Game Playing AI
+Jan 18, 2025 4:13:42 PM gamescene.Launcher update
+INFO: Transition to PLAY
+Jan 18, 2025 4:13:42 PM loader.ResourceLoader loadResource
+INFO: Loading the resources
+Jan 18, 2025 4:13:42 PM loader.ResourceLoader loadResource
+INFO: Upper attack images have been loaded.
+Jan 18, 2025 4:13:42 PM loader.ResourceLoader loadResource
+INFO: Character images have been loaded.
+Jan 18, 2025 4:13:42 PM aiinterface.ThreadController startAI
+INFO: Start P1 AI controller thread
+Jan 18, 2025 4:13:42 PM aiinterface.ThreadController startAI
+INFO: Start P2 AI controller thread
+Jan 18, 2025 4:14:23 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 39.681 seconds (Expected 39.667)
+Jan 18, 2025 4:15:24 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 60.000 seconds (Expected 60.000)
+Jan 18, 2025 4:16:21 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 56.017 seconds (Expected 56.017)
+Jan 18, 2025 4:16:21 PM gamescene.Play update
+INFO: Game over
+Jan 18, 2025 4:16:26 PM gamescene.Socket initialize
+INFO: Waiting to launch a game

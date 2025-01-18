@@ -1,5 +1,17 @@
 Project root: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25-M
 Starting the process with host: 127.0.0.1, port: 18676
-2025-01-18 16:10:58,357 - INFO - Start P1 AI controller task (MctsAi)
-2025-01-18 16:10:58,358 - INFO - Start P2 AI controller task (ProblogAgent)
-2025-01-18 16:11:00,140 - INFO - initialize
+2025-01-18 16:13:45,608 - INFO - Start P1 AI controller task (MctsAi)
+2025-01-18 16:13:45,608 - INFO - Start P2 AI controller task (ProblogAgent)
+2025-01-18 16:13:45,704 - INFO - initialize
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Mean time taken: 0.08564583989050496
+ My hp left: 230, Opponent hp left: 12
+2025-01-18 16:14:48,069 - INFO - round end: RoundResult(current_round=1, remaining_hps=[12, 230], elapsed_frame=3600)
+2025-01-18 16:15:48,069 - INFO - round end: RoundResult(current_round=2, remaining_hps=[9, 75], elapsed_frame=3600)
+Mean time taken: 0.08171288755204942
+ My hp left: 75, Opponent hp left: 9
