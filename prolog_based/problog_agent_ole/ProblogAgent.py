@@ -677,18 +677,19 @@ class ProblogAgent(AIInterface):
         
     def get_screen_data(self, screen_data: ScreenData):
         if self.plot_scenes and hasattr(self, 'display_thread') and screen_data.display_bytes:
-            try:
-                if not screen_data or not screen_data.display_bytes:
-                    logger.debug("No display bytes available")
-                    return
-                if self.display_thread.queue.full():
-                    return
-                self.display_thread.queue.put_nowait(screen_data.display_bytes)
+            print("Displaying screen data")
+            # try:
+            #     if not screen_data or not screen_data.display_bytes:
+            #         logger.debug("No display bytes available")
+            #         return
+            #     if self.display_thread.queue.full():
+            #         return
+            #     self.display_thread.queue.put_nowait(screen_data.display_bytes)
                 
-            except queue.Full:
-                pass
-            except Exception as e:
-                logger.error(f"Error queueing screen data: {e}")
+            # except queue.Full:
+            #     pass
+            # except Exception as e:
+            #     logger.error(f"Error queueing screen data: {e}")
             
         self.screen_data_raw = screen_data
 
