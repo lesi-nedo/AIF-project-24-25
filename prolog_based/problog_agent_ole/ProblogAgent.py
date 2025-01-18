@@ -672,8 +672,9 @@ class ProblogAgent(AIInterface):
 
     def round_end(self, round_result: RoundResult):
         mean_time = np.mean(self.time_taken[self.current_round])
-        self.echo(f"Mean time taken: {mean_time}")
-        self.echo(f" My hp left: {round_result.remaining_hps[self.opponent_number]}, Opponent hp left: {round_result.remaining_hps[self.my_number]}")
+        if self.echo_actions:
+            self.echo(f"Mean time taken: {mean_time}")
+            self.echo(f" My hp left: {round_result.remaining_hps[self.opponent_number]}, Opponent hp left: {round_result.remaining_hps[self.my_number]}")
         my_final_hp = round_result.remaining_hps[self.opponent_number]# they inverse the index, probably a bug
         opponent_final_hp = round_result.remaining_hps[self.my_number]
         value = "draw"
