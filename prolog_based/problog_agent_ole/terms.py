@@ -117,7 +117,7 @@ counteractive_actions = {
 counteractive_actions['total'] = 1
 current_dir = os.path.dirname(os.path.abspath(__file__))
 motion_data = pd.read_csv(
-    "Motion.csv",
+    os.path.join(current_dir, "Motion.csv"),
     sep=',',              # Explicit comma separator
     quotechar='"',        # Use double quotes for field quoting
     escapechar='\\',      # Use backslash as escape character
