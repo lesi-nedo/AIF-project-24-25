@@ -116,7 +116,15 @@ counteractive_actions = {
 }
 counteractive_actions['total'] = 1
 current_dir = os.path.dirname(os.path.abspath(__file__))
-motion_data = pd.read_csv(os.path.join(current_dir,"Motion.csv"))
+motion_data = pd.read_csv(
+    "Motion.csv",
+    sep=',',              # Explicit comma separator
+    quotechar='"',        # Use double quotes for field quoting
+    escapechar='\\',      # Use backslash as escape character
+    na_values=[''],       # Handle empty fields
+    encoding='utf-8'      # Specify encoding
+)
+motion_data.columns = motion_data.columns.str.strip()
 motion_data['motionName'] = motion_data['motionName'].apply(lambda x: x.lower())
 motion_data = motion_data.set_index('motionName')
 damage_amounts = motion_data['attack.HitDamage'].to_dict()
