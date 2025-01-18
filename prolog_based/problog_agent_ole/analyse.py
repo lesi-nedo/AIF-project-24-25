@@ -139,7 +139,11 @@ def analyze_inference_and_actions(path_file):
     
     # Calculate statistics first
     mismatches = sum(1 for e, i in all_action_pairs if e != i)
-    mismatch_rate = mismatches / len(all_action_pairs) * 100
+    len_actions_pairs =  len(all_action_pairs)
+    if len_actions_pairs > 0:
+        mismatch_rate = mismatches /len_actions_pairs * 100
+    else:
+        mismatch_rate = 100.0
     avg_inference_time = np.mean(all_inference_times)
     median_inference_time = np.median(all_inference_times)
 
