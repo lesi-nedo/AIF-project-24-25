@@ -6,7 +6,7 @@ import pathlib
 import numpy as np
 
 sys.path.append(os.path.join(pathlib.Path(os.path.dirname(__file__)).parent, "prolog_agent_simo"))
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+sys.path.append(os.path.join(pathlib.Path(os.path.dirname(__file__)).parent.parent))
 sys.path.append(os.path.join(pathlib.Path(os.path.dirname(__file__)).parent.parent, "monte_carlo_tree_search"))
 
 
@@ -22,7 +22,7 @@ from monte_carlo_tree_search.MctsAi import MctsAi
 from StatsTracker import StatsTracker
 
 async def start_process(
-        host:str , port: int, character: str = "ZEN", game_number: int = 1, keep_stats: bool = False, 
+        host:str , port: int, character: str = "ZEN", game_number: int = 1, keep_stats: bool = False,  echo_actions: bool = False,
         plot_scenes: bool = False, simo_agent: bool = False, marco_agent: bool = False, fightice_agent: bool = False
     ):
 
@@ -34,7 +34,7 @@ async def start_process(
             gateway.register_ai("PrologAI", a1)
             name_agent = "PrologAI"
         if marco_agent:
-            a1 = MctsAi(exploration_constant=np.sqrt(2), iteration_limit=3)
+            a1 = MctsAi(exploration_constant=np.sqrt(2), iteration_limit=2)
             gateway.register_ai("MctsAi", a1)
             name_agent = "MctsAi"
         if fightice_agent:
@@ -42,9 +42,9 @@ async def start_process(
 
         if keep_stats:
             stats_tracker= StatsTracker(name_agent, "ProblogAgent")
-            a2 = ProblogAgent(plot_scenes=plot_scenes, stats_tracker=stats_tracker)
+            a2 = ProblogAgent(plot_scenes=plot_scenes, stats_tracker=stats_tracker, echo_actions=echo_actions)
         else:
-            a2 = ProblogAgent(plot_scenes=plot_scenes)
+            a2 = ProblogAgent(plot_scenes=plot_scenes, echo_actions=echo_actions)
         gateway.register_ai("ProblogAgent", a2)
         await gateway.run_game([character, character], [name_agent,"ProblogAgent"], game_number)
         
@@ -64,7 +64,7 @@ def main(
     ):
     
     typer.echo(f"Starting the process with host: {host}, port: {port}")
-    asyncio.run(start_process(host, port, plot_scenes=plot_scenes, fightice_agent=True))
+    asyncio.run(start_process(host, port, plot_scenes=plot_scenes, fightice_agent=True, echo_actions=True))
     
 
 if __name__ == '__main__':

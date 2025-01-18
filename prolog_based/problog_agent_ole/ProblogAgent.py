@@ -67,7 +67,7 @@ problog_logger = logging.getLogger("problog")
 problog_logger.setLevel(logging.ERROR)
 
 class ProblogAgent(AIInterface):
-    def __init__(self, k_best_value: int = 5, plot_scenes: bool = False, width: int = 960, height: int = 640, **kwargs):
+    def __init__(self, k_best_value: int = 5, plot_scenes: bool = False, echo_actions=False, width: int = 960, height: int = 640, **kwargs):
         # time.sleep(20)
         super().__init__()
         self.MULTIPLIER = 4
@@ -105,6 +105,7 @@ class ProblogAgent(AIInterface):
         self.my_hps: dict[int, list[int]] = {}
         self.count_frames = 0
         self.round_results: dict[int, str|None] = {1: None, 2: None, 3: None}
+        self.echo_actions= echo_actions
 
         self.durations: dict[int, float] = {1: 0.0, 2: 0.0, 3: 0.0}
         self.current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -522,7 +523,9 @@ class ProblogAgent(AIInterface):
             self.cc.command_call(action_to_execute)
             my_actions_inferred_list = self.my_actions_inferred[current_round]
             my_actions_inferred_list.append(action_to_execute)
-            # self.echo(f"Action to execute: {action_to_execute}")
+
+            if self.echo_actions:
+                self.echo(f"Action to execute: {action_to_execute}")
         
     def _get_opp_facing_dir_evd(self):
         my_facing_dr = self.my_character_data.front
@@ -677,19 +680,18 @@ class ProblogAgent(AIInterface):
         
     def get_screen_data(self, screen_data: ScreenData):
         if self.plot_scenes and hasattr(self, 'display_thread') and screen_data.display_bytes:
-            print("Displaying screen data")
-            # try:
-            #     if not screen_data or not screen_data.display_bytes:
-            #         logger.debug("No display bytes available")
-            #         return
-            #     if self.display_thread.queue.full():
-            #         return
-            #     self.display_thread.queue.put_nowait(screen_data.display_bytes)
+            try:
+                if not screen_data or not screen_data.display_bytes:
+                    logger.debug("No display bytes available")
+                    return
+                if self.display_thread.queue.full():
+                    return
+                self.display_thread.queue.put_nowait(screen_data.display_bytes)
                 
-            # except queue.Full:
-            #     pass
-            # except Exception as e:
-            #     logger.error(f"Error queueing screen data: {e}")
+            except queue.Full:
+                pass
+            except Exception as e:
+                logger.error(f"Error queueing screen data: {e}")
             
         self.screen_data_raw = screen_data
 
