@@ -70,39 +70,40 @@ class DisplayThread(threading.Thread):
                 logger.error(f"Display thread error: {e}")
                 
     def _init_display(self):
-        matplotlib.use('module://ipykernel.pylab.backend_inline')
-        plt.ioff()
+    #     matplotlib.use('module://ipykernel.pylab.backend_inline')
+    #     plt.ioff()
         
-       # Create figure and display area for messages
-        self.fig = plt.figure(figsize=(10, 12), dpi=80)
+    #    # Create figure and display area for messages
+    #     self.fig = plt.figure(figsize=(10, 12), dpi=80)
         
-        # Main game display
-        self.ax = self.fig.add_subplot(2, 1, 1)  # Top subplot for game
-        self.ax.set_xlim(0, self.width)
-        self.ax.set_ylim(0, self.height)
-        self.ax.axis("off")
-        self.ax.set_aspect("equal")
-        self.ax.set_title("Game Scene")
-        # Initialize image plot with optimized settings
-        self.img_plot = self.ax.imshow(
-            np.zeros((self.height, self.width, 3), dtype=np.uint8),
-            interpolation='nearest',  # Faster interpolation
-            animated=True  # Optimize for animation
-        )
-        # Text area for messages
-        self.text_ax = self.fig.add_subplot(2, 1, 2)  # Bottom subplot for text
-        self.text_ax.axis('off')
-        self.text_box = self.text_ax.text(0.05, 0.95, '', 
-                                        transform=self.text_ax.transAxes,
-                                        verticalalignment='top',
-                                        fontfamily='monospace')
+    #     # Main game display
+    #     self.ax = self.fig.add_subplot(2, 1, 1)  # Top subplot for game
+    #     self.ax.set_xlim(0, self.width)
+    #     self.ax.set_ylim(0, self.height)
+    #     self.ax.axis("off")
+    #     self.ax.set_aspect("equal")
+    #     self.ax.set_title("Game Scene")
+    #     # Initialize image plot with optimized settings
+    #     self.img_plot = self.ax.imshow(
+    #         np.zeros((self.height, self.width, 3), dtype=np.uint8),
+    #         interpolation='nearest',  # Faster interpolation
+    #         animated=True  # Optimize for animation
+    #     )
+    #     # Text area for messages
+    #     self.text_ax = self.fig.add_subplot(2, 1, 2)  # Bottom subplot for text
+    #     self.text_ax.axis('off')
+    #     self.text_box = self.text_ax.text(0.05, 0.95, '', 
+    #                                     transform=self.text_ax.transAxes,
+    #                                     verticalalignment='top',
+    #                                     fontfamily='monospace')
         
         
-        self.fig.tight_layout()
+    #     self.fig.tight_layout()
         
-        plt.close('all')
-        display.clear_output(wait=True)
-        self.display_handle = display.display(self.fig, display_id=True)
+    #     plt.close('all')
+    #     display.clear_output(wait=True)
+    #     self.display_handle = display.display(self.fig, display_id=True)
+        pass
         
     def _update_display(self, screen_data):
         if not isinstance(screen_data, bytes):
