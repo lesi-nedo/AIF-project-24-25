@@ -693,6 +693,7 @@ class ProblogAgent(AIInterface):
         self.screen_data_raw = screen_data
 
     def _init_plots(self):
+        print("GEETING SCREEN DATA",flush=True)
         if self.plot_scenes:
             self.display_thread = DisplayThread(self.width, self.height)
             self.display_thread.start()

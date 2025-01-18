@@ -27,34 +27,27 @@ async def start_process(
     ):
 
 
-    gateway = Gateway(host, port)
+        gateway = Gateway(host, port)
+            
+        if simo_agent:
+            a1 = PrologAI()
+            gateway.register_ai("PrologAI", a1)
+            name_agent = "PrologAI"
+        if marco_agent:
+            a1 = MctsAi(exploration_constant=np.sqrt(2), iteration_limit=3)
+            gateway.register_ai("MctsAi", a1)
+            name_agent = "MctsAi"
+        if fightice_agent:
+            name_agent = "MctsAi23i"
+
+        if keep_stats:
+            stats_tracker= StatsTracker(name_agent, "ProblogAgent")
+            a2 = ProblogAgent(plot_scenes=plot_scenes, stats_tracker=stats_tracker)
+        else:
+            a2 = ProblogAgent(plot_scenes=plot_scenes)
+        gateway.register_ai("ProblogAgent", a2)
+        await gateway.run_game([character, character], [name_agent,"ProblogAgent"], game_number)
         
-    if simo_agent:
-        a1 = PrologAI()
-        gateway.register_ai("PrologAI", a1)
-        name_agent = "PrologAI"
-    if marco_agent:
-        a1 = MctsAi(exploration_constant=np.sqrt(2), iteration_limit=3)
-        gateway.register_ai("MctsAi", a1)
-        name_agent = "MctsAi"
-    if fightice_agent:
-        name_agent = "MctsAi23i"
-
-    if keep_stats:
-        stats_tracker= StatsTracker(name_agent, "ProblogAgent")
-        a2 = ProblogAgent(plot_scenes=plot_scenes, stats_tracker=stats_tracker)
-    else:
-        a2 = ProblogAgent(plot_scenes=plot_scenes)
-    gateway.register_ai("ProblogAgent", a2)
-    await gateway.run_game([character, character], [name_agent,"ProblogAgent"], game_number)
-    
-    # a1 = MinimaxAI()
-    # gateway.register_ai("MinimaxAI", a1)
-    # name_minimax = "MinimaxAI"
-    # await gateway.run_game([character, character], [name_minimax,"ProblogAgent"], game_number)
-
-    # name = "MctsAi23i"
-    # await gateway.run_game([character, character], [name,"ProblogAgent"], game_number)
 
     
     
