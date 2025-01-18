@@ -34,7 +34,7 @@ async def start_process(
             gateway.register_ai("PrologAI", a1)
             name_agent = "PrologAI"
         if marco_agent:
-            a1 = MctsAi(exploration_constant=np.sqrt(2), iteration_limit=2)
+            a1 = MctsAi(exploration_constant=np.sqrt(2), iteration_limit=3)
             gateway.register_ai("MctsAi", a1)
             name_agent = "MctsAi"
         if fightice_agent:
@@ -64,7 +64,7 @@ def main(
     ):
     
     typer.echo(f"Starting the process with host: {host}, port: {port}")
-    asyncio.run(start_process(host, port, plot_scenes=plot_scenes, fightice_agent=True, echo_actions=True, keep_stats=True))
+    asyncio.run(start_process(host, port, plot_scenes=plot_scenes, fightice_agent=True, echo_actions=False, keep_stats=True))
     
 
 if __name__ == '__main__':

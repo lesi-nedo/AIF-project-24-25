@@ -273,7 +273,7 @@ calculate_energy_ratio(EGain, ECost, EnergyRatio) :-
     EnergyRatio is GainRatio - CostRatio.
 
 
-max_dist_y(100).
+max_dist_y(55).
 
 action_utility(Action, FinalUtility) :-
     curr_pos(me, X1, Y1),
@@ -386,12 +386,11 @@ find_my_best_action(BestAction, BestUtility) :-
     prev_hp_value(opponent, OppPrevHP),
     prev_action(me, MyPrevAction),
     prev_action(opponent, OppPrevAction),
-    find_best_k_prob_actions(5, MostProbableOppActions),
     facing_dir(me, MyFDir),
     hbox(opponent, OppHBox),
     possible_actions(
         X1, X2, Y1, Y2, MyFDir, MyHP, MyPrevHP, OppHP, OppPrevHP, MyEnergy, MyPrevEnergy, 
-        OppEnergy, OppPrevEnergy, PredOppActionType, MyPrevAction, OppPrevAction, MostProbableOppActions,OppHBox, ActionList),
+        OppEnergy, OppPrevEnergy, PredOppActionType, MyPrevAction, OppPrevAction,OppHBox, ActionList),
     length(ActionList, L),
     (
         (L =:= 1,
@@ -403,6 +402,10 @@ find_my_best_action(BestAction, BestUtility) :-
             find_utilities(ActionList, UtilityList),
             sort(UtilityList, SortedList),
             last(SortedList, BestUtility-BestAction)
+        );
+        (L =:= 0,
+            BestAction = crouch_fb,
+            BestUtility = 0.5
         )
     ).
       

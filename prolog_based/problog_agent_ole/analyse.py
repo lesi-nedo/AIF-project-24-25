@@ -51,6 +51,9 @@ def analyse(path_file):
         lambda x: 'Win' if x['wins'] > x['losses'] 
         else ('Draw' if x['wins'] == x['losses'] else 'Loss'), axis=1)
     matches_df['outcome'].value_counts().plot(kind='pie', autopct='%1.1f%%', ax=ax1)
+    ax1.tick_params(axis='x', rotation=45, which='both',
+                length=4,
+                direction='in')
     ax1.set_title('Overall Match Outcome Distribution')
 
     # Plot 2: Landslide outcomes
@@ -133,7 +136,7 @@ def analyze_inference_and_actions(path_file):
                 inferred = round['actions_inferred']
                 # Zip only matching lengths in case of mismatch
                 all_action_pairs.extend(list(zip(executed[:len(inferred)], inferred)))
-
+    
     # Calculate statistics first
     mismatches = sum(1 for e, i in all_action_pairs if e != i)
     mismatch_rate = mismatches / len(all_action_pairs) * 100

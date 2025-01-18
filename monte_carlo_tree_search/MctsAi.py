@@ -24,7 +24,7 @@ logger.propagate = True
 
 
 class MctsAi(AIInterface):
-    def __init__(self,exploration_constant: float, iteration_limit: int, plot_scenes: bool = False, width: int = 960, height: int = 640):
+    def __init__(self,exploration_constant: float, iteration_limit: int, echo_actions: bool = False, plot_scenes: bool = False, width: int = 960, height: int = 640):
         super().__init__()
         self.blind_flag = True
         self.plot_scenes = plot_scenes
@@ -32,6 +32,7 @@ class MctsAi(AIInterface):
         self.iteration_limit = iteration_limit
         self.width = width
         self.height = height
+        self.echo_actions = echo_actions
         if self.plot_scenes:
             self._init_plots()
             self.echo = self.display_thread.add_log
@@ -107,7 +108,8 @@ class MctsAi(AIInterface):
             try:
                 best_action = searcher.search(initialState=initial_state)
                 #self.cc.command_call(best_action)
-                # self.echo("AZIONE MIGLIORE: "+str(best_action))
+                if self.echo_actions:
+                    self.echo("AZIONE MIGLIORE: "+str(best_action))
                 self.cc.command_call(str(best_action.action_name).upper())
             except Exception as e:
                 tb = sys.exc_info()[-1]

@@ -242,8 +242,8 @@ class ProblogAgent(AIInterface):
         my_state = f"my_state({Action.STAND.value}).\n"
         opponent_prev_energy = f"prev_energy_value(opponent, {self.opponent_energy[self.current_round][0]}).\n"
         me_prev_energy = f"prev_energy_value(me, {self.my_energy[self.current_round][0]}).\n"
-        counter_action = f"count_action({Action.STAND_FA.value}, 1).\n"
-        counter_total_actions = f"count_total_actions(1).\n"
+        # counter_action = f"count_action({Action.STAND_FA.value}, 1).\n"
+        # counter_total_actions = f"count_total_actions(1).\n"
         my_prev_health = f"prev_hp_value(me, {self.my_hps[self.current_round][0]}).\n"
         my_prev_energy = f"prev_energy_value(me, {self.my_energy[self.current_round][0]}).\n"
         opponent_prev_health = f"prev_hp_value(opponent, {self.opponent_hps[self.current_round][0]}).\n"
@@ -256,8 +256,7 @@ class ProblogAgent(AIInterface):
             count_state_opponent, count_total_states_opponent, my_state,
             me_curr_pos, opponent_curr_pos, my_facing_dir, opponent_facing_dir,
             my_prev_action, opponent_prev_energy, opponent_prev_action,
-            counter_action, counter_total_actions, me_prev_energy, opponent_hbox,
-            my_prev_health, my_prev_energy, opponent_prev_health, opponent_prev_energy])
+            me_prev_energy, opponent_hbox, my_prev_health, my_prev_energy, opponent_prev_health, opponent_prev_energy])
         for statement in PrologString(str_concat):
             self.db_enriched += statement
 
@@ -412,29 +411,26 @@ class ProblogAgent(AIInterface):
             return
         
         self.durations[self.current_round] += self.frame_data.current_frame_number
-        if not  self.my_character_data.control:
-            self.count_frames += 1
-        else:
-            self.count_frames = 0
         
         if self.cc.get_skill_flag():
             self.sent = True
             self.key = self.cc.get_skill_key()       
         
         else:
+            multiplier = np.abs(self.frame_data.current_frame_number - self.count_frames)
             self.key.empty()
             self.cc.skill_cancel()
             current_round = self.frame_data.current_round
-            opponent_actions_type_list = self.opponent_actions_type[current_round]
-            opponent_actions_type_list.append(self.estimate_opponent_action())
+            # opponent_actions_type_list = self.opponent_actions_type[current_round]
+            # opponent_actions_type_list.append(self.estimate_opponent_action())
             # prev action types
-            my_actions_type_list = self.opponent_actions_type[current_round]
-            my_actions_type_list.append(self.estimate_my_action())
+            # my_actions_type_list = self.my_actions_type[current_round]
+            # my_actions_type_list.append(self.estimate_my_action())
             # updating counters based on prev opponent action type
-            self.aggressive_action = opponent_actions_type_list[-1] == "attack" or opponent_actions_type_list[-1] == "special"
-            if self.aggressive_action:
-                self.counter_actions.update({self.opponent_character_data.action.value: self.counter_actions.get(self.opponent_character_data.action.value, 0) + 1})
-                self.counter_actions_total += 1
+            # self.aggressive_action = opponent_actions_type_list[-1] == "attack" or opponent_actions_type_list[-1] == "special"
+            # if self.aggressive_action:
+            #     self.counter_actions.update({self.opponent_character_data.action.value: self.counter_actions.get(self.opponent_character_data.action.value, 0) + 1})
+            #     self.counter_actions_total += 1
 
             # state update
             my_state_list = self.my_state[current_round]
@@ -444,8 +440,8 @@ class ProblogAgent(AIInterface):
             # action update
             my_actions_list = self.my_actions[current_round]
             my_actions_list.append(self.my_character_data.action.value)
-            my_opponent_actions_list = self.opponent_actions[current_round]
-            my_opponent_actions_list.append(self.opponent_character_data.action.value)
+            opponent_actions_list = self.opponent_actions[current_round]
+            opponent_actions_list.append(self.opponent_character_data.action.value)
             # hp and energy update
             opponent_hp_list = self.opponent_hps[current_round]
             opponent_hp_list.append(self.opponent_character_data.hp)
@@ -462,8 +458,8 @@ class ProblogAgent(AIInterface):
             px = pred_speed_x
             py = pred_speed_y
             if self.my_character_data.hit_confirm:
-                px += self.opponent_character_data.attack_data.impact_x 
-                py += self.opponent_character_data.attack_data.impact_y 
+                px = self.my_character_data.attack_data.impact_x
+                py = self.my_character_data.attack_data.impact_y
             opponent_speed_list.append((self.opponent_character_data.speed_x, self.opponent_character_data.speed_y))
                 
 
@@ -472,9 +468,8 @@ class ProblogAgent(AIInterface):
             right = self.opponent_character_data.right
             top = self.opponent_character_data.top
             bottom = self.opponent_character_data.bottom
-
-            px *= int(facing_dir*self.count_frames)
-            py *= int(facing_dir*self.count_frames)
+            px *= int(facing_dir*multiplier)
+            py *= int(facing_dir*multiplier)
 
             x = self.opponent_character_data.x
             y = self.opponent_character_data.y
@@ -493,12 +488,24 @@ class ProblogAgent(AIInterface):
                 "bottom": pred_bottom
             })
             opponent_curr_pos_list = self.opponent_curr_pos[current_round]
+            opponent_curr_pos_list[-1] = (x, y)
             opponent_curr_pos_list.append((pred_pos_x, pred_pos_y))
 
+
+            px = 0
+            py = 0
+            if self.opponent_character_data.hit_confirm:
+                px = self.opponent_character_data.attack_data.impact_x
+                py = self.opponent_character_data.attack_data.impact_y
+
+            px *= int(facing_dir*multiplier)
+            py *= int(facing_dir*multiplier)
+    
             x = self.my_character_data.x
             y = self.my_character_data.y
             my_curr_pos_list = self.my_curr_pos[current_round]
-            my_curr_pos_list.append((x, y))
+            my_curr_pos_list[-1] = (x, y)
+            my_curr_pos_list.append((x+px, y+py))
             
             self._increment_counter('me', self.my_character_data.state.value)
             self._increment_counter('opponent', self.opponent_character_data.state.value)
@@ -526,6 +533,7 @@ class ProblogAgent(AIInterface):
 
             if self.echo_actions:
                 self.echo(f"Action to execute: {action_to_execute}")
+            self.count_frames = self.frame_data.current_frame_number
         
     def _get_opp_facing_dir_evd(self):
         my_facing_dr = self.my_character_data.front
@@ -616,12 +624,13 @@ class ProblogAgent(AIInterface):
         my_prev_hp, my_prev_energy = self._get_clause_prev_hp_energy("me")
         my_facing_dir = self._get_clause_facing_dir("me")
         opponent_facing_dir = self._get_clause_facing_dir("opponent")
-        counters_actions = [action for action in self._get_clause_count_actions()]
-        for clause in counters_actions:
-            self.clauses_to_add.update({clause: self.clauses_to_add.get(clause, 0) + 1})
-        best_actions_clauses_tuple = sorted(self.clauses_to_add.items(), key=lambda x: x[1], reverse=True)[:self.k_most_prob_actions]
-        best_k_actions_clauses = [clause for clause, _ in best_actions_clauses_tuple]
-        counters_actions_total = self._get_clause_count_total_actions()
+
+        # counters_actions = [action for action in self._get_clause_count_actions()]
+        # for clause in counters_actions:
+        #     self.clauses_to_add.update({clause: self.clauses_to_add.get(clause, 0) + 1})
+        # best_actions_clauses_tuple = sorted(self.clauses_to_add.items(), key=lambda x: x[1], reverse=True)[:self.k_most_prob_actions]
+        # best_k_actions_clauses = [clause for clause, _ in best_actions_clauses_tuple]
+        # counters_actions_total = self._get_clause_count_total_actions()
        
         
         
@@ -635,7 +644,7 @@ class ProblogAgent(AIInterface):
         concat_str = "\n".join([
             opponent_str_hp, opponent_str_energy, opponent_state_clause, opponent_total_states_clause, 
             opponent_curr_pos, opponent_prev_energy,opponent_facing_dir, opponent_prev_action,
-            counters_actions_total, *best_k_actions_clauses, opponent_prev_hp, opponent_hbox
+            opponent_prev_hp, opponent_hbox
         ])
         for statement in PrologString(concat_str):
             db += statement

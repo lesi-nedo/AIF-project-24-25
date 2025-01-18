@@ -1,552 +1,292 @@
-Running with args:  --port 35469 --headless-mode
+Running with args:  --port 20581 --headless-mode
 Note: Some input files use or override a deprecated API.
 Note: Recompile with -Xlint:deprecation for details.
-Jan 18, 2025 11:32:09 AM manager.GraphicManager <init>
+Jan 18, 2025 9:52:06 PM manager.GraphicManager <init>
 INFO: Create instance: manager.GraphicManager
-Jan 18, 2025 11:32:09 AM loader.ResourceLoader <init>
+Jan 18, 2025 9:52:06 PM loader.ResourceLoader <init>
 INFO: Create instance: loader.ResourceLoader
-Jan 18, 2025 11:32:09 AM core.Game initialize
-INFO: Socket server is started, listening on 35469
-Jan 18, 2025 11:32:09 AM gamescene.Socket initialize
+Jan 18, 2025 9:52:06 PM core.Game initialize
+INFO: Socket server is started, listening on 20581
+Jan 18, 2025 9:52:06 PM gamescene.Socket initialize
 INFO: Waiting to launch a game
-Jan 18, 2025 11:32:09 AM manager.InputManager <init>
+Jan 18, 2025 9:52:06 PM manager.InputManager <init>
 INFO: Create instance: manager.InputManager
-Jan 18, 2025 11:32:17 AM service.SocketServer lambda$startServer$0
+Jan 18, 2025 9:52:14 PM service.SocketServer lambda$startServer$0
 INFO: Received run game request
-Jan 18, 2025 11:32:17 AM service.SocketServer lambda$startServer$0
+Jan 18, 2025 9:52:14 PM service.SocketServer lambda$startServer$0
 INFO: Client connected as Game Playing AI
-Jan 18, 2025 11:32:17 AM gamescene.Launcher update
+Jan 18, 2025 9:52:14 PM gamescene.Launcher update
 INFO: Transition to PLAY
-Jan 18, 2025 11:32:17 AM loader.ResourceLoader loadResource
+Jan 18, 2025 9:52:14 PM loader.ResourceLoader loadResource
 INFO: Loading the resources
-Jan 18, 2025 11:32:17 AM loader.ResourceLoader loadResource
+Jan 18, 2025 9:52:14 PM loader.ResourceLoader loadResource
 INFO: Hadouken images have been loaded.
-Jan 18, 2025 11:32:17 AM loader.ResourceLoader loadResource
+Jan 18, 2025 9:52:14 PM loader.ResourceLoader loadResource
 INFO: Ultimate attack images have been loaded.
-Jan 18, 2025 11:32:17 AM loader.ResourceLoader loadResource
+Jan 18, 2025 9:52:14 PM loader.ResourceLoader loadResource
 INFO: Hit counter text images have been loaded.
-Jan 18, 2025 11:32:17 AM loader.ResourceLoader loadResource
+Jan 18, 2025 9:52:14 PM loader.ResourceLoader loadResource
 INFO: Hit text image has been loaded.
-Jan 18, 2025 11:32:17 AM loader.ResourceLoader loadResource
+Jan 18, 2025 9:52:14 PM loader.ResourceLoader loadResource
 INFO: Hit effect images have been loaded.
-Jan 18, 2025 11:32:17 AM loader.ResourceLoader loadResource
+Jan 18, 2025 9:52:14 PM loader.ResourceLoader loadResource
 INFO: Background image has been loaded.
-Jan 18, 2025 11:32:17 AM loader.ResourceLoader loadResource
+Jan 18, 2025 9:52:14 PM loader.ResourceLoader loadResource
 INFO: Upper attack images have been loaded.
-Jan 18, 2025 11:32:19 AM loader.ResourceLoader loadResource
+Jan 18, 2025 9:52:16 PM loader.ResourceLoader loadResource
 INFO: Character images have been loaded.
-Jan 18, 2025 11:32:19 AM manager.SoundManager <init>
+Jan 18, 2025 9:52:16 PM manager.SoundManager <init>
 INFO: Create instance: manager.SoundManager
-Jan 18, 2025 11:32:19 AM util.LogWriter <init>
+Jan 18, 2025 9:52:16 PM util.LogWriter <init>
 INFO: Create instance: util.LogWriter
-Jan 18, 2025 11:32:19 AM aiinterface.ThreadController startAI
+Jan 18, 2025 9:52:16 PM aiinterface.ThreadController startAI
 INFO: Start P1 AI controller thread
-Jan 18, 2025 11:32:19 AM aiinterface.ThreadController startAI
+Jan 18, 2025 9:52:17 PM aiinterface.ThreadController startAI
 INFO: Start P2 AI controller thread
-Jan 18, 2025 11:32:21 AM util.ResourceDrawer <init>
+Jan 18, 2025 9:52:18 PM util.ResourceDrawer <init>
 INFO: Create instance: util.ResourceDrawer
-Jan 18, 2025 11:33:22 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 61.479 seconds (Expected 60.000)
-Jan 18, 2025 11:34:24 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.669 seconds (Expected 60.000)
-Jan 18, 2025 11:35:25 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.176 seconds (Expected 60.000)
-Jan 18, 2025 11:35:25 AM gamescene.Play update
+Jan 18, 2025 9:53:19 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 61.191 seconds (Expected 60.000)
+Jan 18, 2025 9:54:21 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 60.478 seconds (Expected 60.000)
+Jan 18, 2025 9:55:23 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 60.806 seconds (Expected 60.000)
+Jan 18, 2025 9:55:23 PM gamescene.Play update
 INFO: Game over
-Jan 18, 2025 11:35:30 AM gamescene.Socket initialize
+Jan 18, 2025 9:55:28 PM gamescene.Socket initialize
 INFO: Waiting to launch a game
-Jan 18, 2025 11:35:37 AM service.SocketServer lambda$startServer$0
+Jan 18, 2025 9:55:34 PM service.SocketServer lambda$startServer$0
 INFO: Received run game request
-Jan 18, 2025 11:35:37 AM service.SocketServer lambda$startServer$0
+Jan 18, 2025 9:55:34 PM service.SocketServer lambda$startServer$0
 INFO: Client connected as Game Playing AI
-Jan 18, 2025 11:35:37 AM gamescene.Launcher update
+Jan 18, 2025 9:55:34 PM gamescene.Launcher update
 INFO: Transition to PLAY
-Jan 18, 2025 11:35:37 AM loader.ResourceLoader loadResource
+Jan 18, 2025 9:55:34 PM loader.ResourceLoader loadResource
 INFO: Loading the resources
-Jan 18, 2025 11:35:37 AM loader.ResourceLoader loadResource
+Jan 18, 2025 9:55:34 PM loader.ResourceLoader loadResource
 INFO: Upper attack images have been loaded.
-Jan 18, 2025 11:35:37 AM loader.ResourceLoader loadResource
+Jan 18, 2025 9:55:34 PM loader.ResourceLoader loadResource
 INFO: Character images have been loaded.
-Jan 18, 2025 11:35:37 AM aiinterface.ThreadController startAI
+Jan 18, 2025 9:55:34 PM aiinterface.ThreadController startAI
 INFO: Start P1 AI controller thread
-Jan 18, 2025 11:35:37 AM aiinterface.ThreadController startAI
+Jan 18, 2025 9:55:34 PM aiinterface.ThreadController startAI
 INFO: Start P2 AI controller thread
-Jan 18, 2025 11:36:38 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.195 seconds (Expected 60.000)
-Jan 18, 2025 11:37:37 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 57.388 seconds (Expected 57.250)
-Jan 18, 2025 11:38:38 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.090 seconds (Expected 60.000)
-Jan 18, 2025 11:38:38 AM gamescene.Play update
+Jan 18, 2025 9:56:32 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 57.473 seconds (Expected 56.967)
+Jan 18, 2025 9:57:32 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 58.710 seconds (Expected 58.183)
+Jan 18, 2025 9:58:33 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 59.116 seconds (Expected 58.950)
+Jan 18, 2025 9:58:33 PM gamescene.Play update
 INFO: Game over
-Jan 18, 2025 11:38:43 AM gamescene.Socket initialize
+Jan 18, 2025 9:58:38 PM gamescene.Socket initialize
 INFO: Waiting to launch a game
-Jan 18, 2025 11:38:49 AM service.SocketServer lambda$startServer$0
+Jan 18, 2025 9:58:44 PM service.SocketServer lambda$startServer$0
 INFO: Received run game request
-Jan 18, 2025 11:38:49 AM service.SocketServer lambda$startServer$0
+Jan 18, 2025 9:58:44 PM service.SocketServer lambda$startServer$0
 INFO: Client connected as Game Playing AI
-Jan 18, 2025 11:38:49 AM gamescene.Launcher update
+Jan 18, 2025 9:58:44 PM gamescene.Launcher update
 INFO: Transition to PLAY
-Jan 18, 2025 11:38:49 AM loader.ResourceLoader loadResource
+Jan 18, 2025 9:58:44 PM loader.ResourceLoader loadResource
 INFO: Loading the resources
-Jan 18, 2025 11:38:49 AM loader.ResourceLoader loadResource
+Jan 18, 2025 9:58:44 PM loader.ResourceLoader loadResource
 INFO: Upper attack images have been loaded.
-Jan 18, 2025 11:38:49 AM loader.ResourceLoader loadResource
+Jan 18, 2025 9:58:44 PM loader.ResourceLoader loadResource
 INFO: Character images have been loaded.
-Jan 18, 2025 11:38:49 AM aiinterface.ThreadController startAI
+Jan 18, 2025 9:58:44 PM aiinterface.ThreadController startAI
 INFO: Start P1 AI controller thread
-Jan 18, 2025 11:38:49 AM aiinterface.ThreadController startAI
+Jan 18, 2025 9:58:44 PM aiinterface.ThreadController startAI
 INFO: Start P2 AI controller thread
-Jan 18, 2025 11:39:50 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.026 seconds (Expected 60.000)
-Jan 18, 2025 11:40:51 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.041 seconds (Expected 60.000)
-Jan 18, 2025 11:41:53 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.076 seconds (Expected 60.000)
-Jan 18, 2025 11:41:53 AM gamescene.Play update
+Jan 18, 2025 9:59:36 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 50.803 seconds (Expected 50.783)
+Jan 18, 2025 10:00:40 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 62.842 seconds (Expected 60.000)
+Jan 18, 2025 10:01:47 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 66.244 seconds (Expected 60.000)
+Jan 18, 2025 10:01:47 PM gamescene.Play update
 INFO: Game over
-Jan 18, 2025 11:41:58 AM gamescene.Socket initialize
+Jan 18, 2025 10:01:52 PM gamescene.Socket initialize
 INFO: Waiting to launch a game
-Jan 18, 2025 11:42:03 AM service.SocketServer lambda$startServer$0
+Jan 18, 2025 10:02:04 PM service.SocketServer lambda$startServer$0
 INFO: Received run game request
-Jan 18, 2025 11:42:03 AM service.SocketServer lambda$startServer$0
+Jan 18, 2025 10:02:04 PM service.SocketServer lambda$startServer$0
 INFO: Client connected as Game Playing AI
-Jan 18, 2025 11:42:03 AM gamescene.Launcher update
+Jan 18, 2025 10:02:04 PM gamescene.Launcher update
 INFO: Transition to PLAY
-Jan 18, 2025 11:42:03 AM loader.ResourceLoader loadResource
+Jan 18, 2025 10:02:04 PM loader.ResourceLoader loadResource
 INFO: Loading the resources
-Jan 18, 2025 11:42:03 AM loader.ResourceLoader loadResource
+Jan 18, 2025 10:02:04 PM loader.ResourceLoader loadResource
 INFO: Upper attack images have been loaded.
-Jan 18, 2025 11:42:03 AM loader.ResourceLoader loadResource
+Jan 18, 2025 10:02:04 PM loader.ResourceLoader loadResource
 INFO: Character images have been loaded.
-Jan 18, 2025 11:42:03 AM aiinterface.ThreadController startAI
+Jan 18, 2025 10:02:04 PM aiinterface.ThreadController startAI
 INFO: Start P1 AI controller thread
-Jan 18, 2025 11:42:03 AM aiinterface.ThreadController startAI
+Jan 18, 2025 10:02:04 PM aiinterface.ThreadController startAI
 INFO: Start P2 AI controller thread
-Jan 18, 2025 11:43:04 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.000 seconds (Expected 60.000)
-Jan 18, 2025 11:44:05 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.106 seconds (Expected 60.000)
-Jan 18, 2025 11:45:07 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.163 seconds (Expected 60.000)
-Jan 18, 2025 11:45:07 AM gamescene.Play update
+Jan 18, 2025 10:03:11 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 65.119 seconds (Expected 60.000)
+Jan 18, 2025 10:04:19 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 67.626 seconds (Expected 60.000)
+Jan 18, 2025 10:05:29 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 68.531 seconds (Expected 60.000)
+Jan 18, 2025 10:05:29 PM gamescene.Play update
 INFO: Game over
-Jan 18, 2025 11:45:12 AM gamescene.Socket initialize
+Jan 18, 2025 10:05:34 PM gamescene.Socket initialize
 INFO: Waiting to launch a game
-Jan 18, 2025 11:45:18 AM service.SocketServer lambda$startServer$0
+Jan 18, 2025 10:05:43 PM service.SocketServer lambda$startServer$0
 INFO: Received run game request
-Jan 18, 2025 11:45:18 AM service.SocketServer lambda$startServer$0
+Jan 18, 2025 10:05:43 PM service.SocketServer lambda$startServer$0
 INFO: Client connected as Game Playing AI
-Jan 18, 2025 11:45:18 AM gamescene.Launcher update
+Jan 18, 2025 10:05:43 PM gamescene.Launcher update
 INFO: Transition to PLAY
-Jan 18, 2025 11:45:18 AM loader.ResourceLoader loadResource
+Jan 18, 2025 10:05:43 PM loader.ResourceLoader loadResource
 INFO: Loading the resources
-Jan 18, 2025 11:45:19 AM loader.ResourceLoader loadResource
+Jan 18, 2025 10:05:43 PM loader.ResourceLoader loadResource
 INFO: Upper attack images have been loaded.
-Jan 18, 2025 11:45:19 AM loader.ResourceLoader loadResource
+Jan 18, 2025 10:05:43 PM loader.ResourceLoader loadResource
 INFO: Character images have been loaded.
-Jan 18, 2025 11:45:19 AM aiinterface.ThreadController startAI
+Jan 18, 2025 10:05:43 PM aiinterface.ThreadController startAI
 INFO: Start P1 AI controller thread
-Jan 18, 2025 11:45:19 AM aiinterface.ThreadController startAI
+Jan 18, 2025 10:05:43 PM aiinterface.ThreadController startAI
 INFO: Start P2 AI controller thread
-Jan 18, 2025 11:46:20 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.000 seconds (Expected 60.000)
-Jan 18, 2025 11:47:21 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.065 seconds (Expected 60.000)
-Jan 18, 2025 11:48:22 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.013 seconds (Expected 60.000)
-Jan 18, 2025 11:48:22 AM gamescene.Play update
+Jan 18, 2025 10:06:45 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 61.219 seconds (Expected 60.000)
+Jan 18, 2025 10:07:57 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 70.081 seconds (Expected 60.000)
+Jan 18, 2025 10:09:10 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 71.922 seconds (Expected 60.000)
+Jan 18, 2025 10:09:10 PM gamescene.Play update
 INFO: Game over
-Jan 18, 2025 11:48:27 AM gamescene.Socket initialize
+Jan 18, 2025 10:09:15 PM gamescene.Socket initialize
 INFO: Waiting to launch a game
-Jan 18, 2025 11:48:33 AM service.SocketServer lambda$startServer$0
+Jan 18, 2025 10:09:20 PM service.SocketServer lambda$startServer$0
 INFO: Received run game request
-Jan 18, 2025 11:48:33 AM service.SocketServer lambda$startServer$0
+Jan 18, 2025 10:09:20 PM service.SocketServer lambda$startServer$0
 INFO: Client connected as Game Playing AI
-Jan 18, 2025 11:48:33 AM gamescene.Launcher update
+Jan 18, 2025 10:09:20 PM gamescene.Launcher update
 INFO: Transition to PLAY
-Jan 18, 2025 11:48:33 AM loader.ResourceLoader loadResource
+Jan 18, 2025 10:09:20 PM loader.ResourceLoader loadResource
 INFO: Loading the resources
-Jan 18, 2025 11:48:33 AM loader.ResourceLoader loadResource
+Jan 18, 2025 10:09:20 PM loader.ResourceLoader loadResource
 INFO: Upper attack images have been loaded.
-Jan 18, 2025 11:48:33 AM loader.ResourceLoader loadResource
+Jan 18, 2025 10:09:20 PM loader.ResourceLoader loadResource
 INFO: Character images have been loaded.
-Jan 18, 2025 11:48:33 AM aiinterface.ThreadController startAI
+Jan 18, 2025 10:09:20 PM aiinterface.ThreadController startAI
 INFO: Start P1 AI controller thread
-Jan 18, 2025 11:48:33 AM aiinterface.ThreadController startAI
+Jan 18, 2025 10:09:20 PM aiinterface.ThreadController startAI
 INFO: Start P2 AI controller thread
-Jan 18, 2025 11:49:34 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.062 seconds (Expected 60.000)
-Jan 18, 2025 11:50:35 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.124 seconds (Expected 60.000)
-Jan 18, 2025 11:51:37 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.050 seconds (Expected 60.000)
-Jan 18, 2025 11:51:37 AM gamescene.Play update
+Jan 18, 2025 10:10:23 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 62.181 seconds (Expected 60.000)
+Jan 18, 2025 10:11:33 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 68.791 seconds (Expected 60.000)
+Jan 18, 2025 10:12:41 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 66.749 seconds (Expected 60.000)
+Jan 18, 2025 10:12:41 PM gamescene.Play update
 INFO: Game over
-Jan 18, 2025 11:51:42 AM gamescene.Socket initialize
+Jan 18, 2025 10:12:46 PM gamescene.Socket initialize
 INFO: Waiting to launch a game
-Jan 18, 2025 11:51:47 AM service.SocketServer lambda$startServer$0
+Jan 18, 2025 10:12:52 PM service.SocketServer lambda$startServer$0
 INFO: Received run game request
-Jan 18, 2025 11:51:47 AM service.SocketServer lambda$startServer$0
+Jan 18, 2025 10:12:52 PM service.SocketServer lambda$startServer$0
 INFO: Client connected as Game Playing AI
-Jan 18, 2025 11:51:47 AM gamescene.Launcher update
+Jan 18, 2025 10:12:52 PM gamescene.Launcher update
 INFO: Transition to PLAY
-Jan 18, 2025 11:51:47 AM loader.ResourceLoader loadResource
+Jan 18, 2025 10:12:52 PM loader.ResourceLoader loadResource
 INFO: Loading the resources
-Jan 18, 2025 11:51:47 AM loader.ResourceLoader loadResource
+Jan 18, 2025 10:12:52 PM loader.ResourceLoader loadResource
 INFO: Upper attack images have been loaded.
-Jan 18, 2025 11:51:47 AM loader.ResourceLoader loadResource
+Jan 18, 2025 10:12:52 PM loader.ResourceLoader loadResource
 INFO: Character images have been loaded.
-Jan 18, 2025 11:51:47 AM aiinterface.ThreadController startAI
+Jan 18, 2025 10:12:52 PM aiinterface.ThreadController startAI
 INFO: Start P1 AI controller thread
-Jan 18, 2025 11:51:47 AM aiinterface.ThreadController startAI
+Jan 18, 2025 10:12:52 PM aiinterface.ThreadController startAI
 INFO: Start P2 AI controller thread
-Jan 18, 2025 11:52:48 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.012 seconds (Expected 60.000)
-Jan 18, 2025 11:53:46 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 56.435 seconds (Expected 56.417)
-Jan 18, 2025 11:54:39 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 52.553 seconds (Expected 51.383)
-Jan 18, 2025 11:54:39 AM gamescene.Play update
+Jan 18, 2025 10:13:58 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 64.951 seconds (Expected 60.000)
+Jan 18, 2025 10:15:10 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 71.048 seconds (Expected 60.000)
+Jan 18, 2025 10:16:08 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 57.157 seconds (Expected 50.317)
+Jan 18, 2025 10:16:08 PM gamescene.Play update
 INFO: Game over
-Jan 18, 2025 11:54:45 AM gamescene.Socket initialize
+Jan 18, 2025 10:16:14 PM gamescene.Socket initialize
 INFO: Waiting to launch a game
-Jan 18, 2025 11:55:03 AM service.SocketServer lambda$startServer$0
+Jan 18, 2025 10:16:30 PM service.SocketServer lambda$startServer$0
 INFO: Received run game request
-Jan 18, 2025 11:55:03 AM service.SocketServer lambda$startServer$0
+Jan 18, 2025 10:16:30 PM service.SocketServer lambda$startServer$0
 INFO: Client connected as Game Playing AI
-Jan 18, 2025 11:55:03 AM gamescene.Launcher update
+Jan 18, 2025 10:16:30 PM gamescene.Launcher update
 INFO: Transition to PLAY
-Jan 18, 2025 11:55:03 AM loader.ResourceLoader loadResource
+Jan 18, 2025 10:16:30 PM loader.ResourceLoader loadResource
 INFO: Loading the resources
-Jan 18, 2025 11:55:03 AM loader.ResourceLoader loadResource
+Jan 18, 2025 10:16:30 PM loader.ResourceLoader loadResource
 INFO: Upper attack images have been loaded.
-Jan 18, 2025 11:55:03 AM loader.ResourceLoader loadResource
+Jan 18, 2025 10:16:30 PM loader.ResourceLoader loadResource
 INFO: Character images have been loaded.
-Jan 18, 2025 11:55:03 AM aiinterface.ThreadController startAI
+Jan 18, 2025 10:16:30 PM aiinterface.ThreadController startAI
 INFO: Start P1 AI controller thread
-Jan 18, 2025 11:55:03 AM aiinterface.ThreadController startAI
+Jan 18, 2025 10:16:30 PM aiinterface.ThreadController startAI
 INFO: Start P2 AI controller thread
-Jan 18, 2025 11:56:05 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.339 seconds (Expected 60.000)
-Jan 18, 2025 11:57:06 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.662 seconds (Expected 60.000)
-Jan 18, 2025 11:58:08 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.745 seconds (Expected 60.000)
-Jan 18, 2025 11:58:08 AM gamescene.Play update
+Jan 18, 2025 10:17:40 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 68.708 seconds (Expected 60.000)
+Jan 18, 2025 10:18:49 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 68.135 seconds (Expected 60.000)
+Jan 18, 2025 10:19:51 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 60.717 seconds (Expected 60.000)
+Jan 18, 2025 10:19:51 PM gamescene.Play update
 INFO: Game over
-Jan 18, 2025 11:58:13 AM gamescene.Socket initialize
+Jan 18, 2025 10:19:56 PM gamescene.Socket initialize
 INFO: Waiting to launch a game
-Jan 18, 2025 11:58:20 AM service.SocketServer lambda$startServer$0
+Jan 18, 2025 10:20:04 PM service.SocketServer lambda$startServer$0
 INFO: Received run game request
-Jan 18, 2025 11:58:20 AM service.SocketServer lambda$startServer$0
+Jan 18, 2025 10:20:04 PM service.SocketServer lambda$startServer$0
 INFO: Client connected as Game Playing AI
-Jan 18, 2025 11:58:20 AM gamescene.Launcher update
+Jan 18, 2025 10:20:04 PM gamescene.Launcher update
 INFO: Transition to PLAY
-Jan 18, 2025 11:58:20 AM loader.ResourceLoader loadResource
+Jan 18, 2025 10:20:04 PM loader.ResourceLoader loadResource
 INFO: Loading the resources
-Jan 18, 2025 11:58:20 AM loader.ResourceLoader loadResource
+Jan 18, 2025 10:20:04 PM loader.ResourceLoader loadResource
 INFO: Upper attack images have been loaded.
-Jan 18, 2025 11:58:20 AM loader.ResourceLoader loadResource
+Jan 18, 2025 10:20:04 PM loader.ResourceLoader loadResource
 INFO: Character images have been loaded.
-Jan 18, 2025 11:58:20 AM aiinterface.ThreadController startAI
+Jan 18, 2025 10:20:04 PM aiinterface.ThreadController startAI
 INFO: Start P1 AI controller thread
-Jan 18, 2025 11:58:20 AM aiinterface.ThreadController startAI
+Jan 18, 2025 10:20:04 PM aiinterface.ThreadController startAI
 INFO: Start P2 AI controller thread
-Jan 18, 2025 11:59:21 AM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.074 seconds (Expected 60.000)
-Jan 18, 2025 12:00:22 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.001 seconds (Expected 60.000)
-Jan 18, 2025 12:01:24 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.851 seconds (Expected 60.000)
-Jan 18, 2025 12:01:24 PM gamescene.Play update
+Jan 18, 2025 10:21:11 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 66.219 seconds (Expected 58.267)
+Jan 18, 2025 10:22:20 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 67.202 seconds (Expected 60.000)
+Jan 18, 2025 10:23:21 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 60.323 seconds (Expected 60.000)
+Jan 18, 2025 10:23:21 PM gamescene.Play update
 INFO: Game over
-Jan 18, 2025 12:01:30 PM gamescene.Socket initialize
+Jan 18, 2025 10:23:26 PM gamescene.Socket initialize
 INFO: Waiting to launch a game
-Jan 18, 2025 12:01:36 PM service.SocketServer lambda$startServer$0
+Jan 18, 2025 10:23:32 PM service.SocketServer lambda$startServer$0
 INFO: Received run game request
-Jan 18, 2025 12:01:36 PM service.SocketServer lambda$startServer$0
+Jan 18, 2025 10:23:32 PM service.SocketServer lambda$startServer$0
 INFO: Client connected as Game Playing AI
-Jan 18, 2025 12:01:36 PM gamescene.Launcher update
+Jan 18, 2025 10:23:32 PM gamescene.Launcher update
 INFO: Transition to PLAY
-Jan 18, 2025 12:01:36 PM loader.ResourceLoader loadResource
+Jan 18, 2025 10:23:32 PM loader.ResourceLoader loadResource
 INFO: Loading the resources
-Jan 18, 2025 12:01:36 PM loader.ResourceLoader loadResource
+Jan 18, 2025 10:23:32 PM loader.ResourceLoader loadResource
 INFO: Upper attack images have been loaded.
-Jan 18, 2025 12:01:36 PM loader.ResourceLoader loadResource
+Jan 18, 2025 10:23:32 PM loader.ResourceLoader loadResource
 INFO: Character images have been loaded.
-Jan 18, 2025 12:01:36 PM aiinterface.ThreadController startAI
+Jan 18, 2025 10:23:32 PM aiinterface.ThreadController startAI
 INFO: Start P1 AI controller thread
-Jan 18, 2025 12:01:36 PM aiinterface.ThreadController startAI
+Jan 18, 2025 10:23:32 PM aiinterface.ThreadController startAI
 INFO: Start P2 AI controller thread
-Jan 18, 2025 12:02:38 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.844 seconds (Expected 60.000)
-Jan 18, 2025 12:03:25 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 45.380 seconds (Expected 45.250)
-Jan 18, 2025 12:04:26 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.017 seconds (Expected 60.000)
-Jan 18, 2025 12:04:26 PM gamescene.Play update
+Jan 18, 2025 10:24:33 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 60.484 seconds (Expected 60.000)
+Jan 18, 2025 10:25:35 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 60.512 seconds (Expected 60.000)
+Jan 18, 2025 10:26:37 PM gamescene.Play processingRoundEnd
+INFO: Round Duration: 61.049 seconds (Expected 60.000)
+Jan 18, 2025 10:26:37 PM gamescene.Play update
 INFO: Game over
-Jan 18, 2025 12:04:31 PM gamescene.Socket initialize
+Jan 18, 2025 10:26:42 PM gamescene.Socket initialize
 INFO: Waiting to launch a game
-Jan 18, 2025 12:04:50 PM service.SocketServer lambda$startServer$0
-INFO: Received run game request
-Jan 18, 2025 12:04:50 PM service.SocketServer lambda$startServer$0
-INFO: Client connected as Game Playing AI
-Jan 18, 2025 12:04:50 PM gamescene.Launcher update
-INFO: Transition to PLAY
-Jan 18, 2025 12:04:50 PM loader.ResourceLoader loadResource
-INFO: Loading the resources
-Jan 18, 2025 12:04:50 PM loader.ResourceLoader loadResource
-INFO: Upper attack images have been loaded.
-Jan 18, 2025 12:04:50 PM loader.ResourceLoader loadResource
-INFO: Character images have been loaded.
-Jan 18, 2025 12:04:50 PM aiinterface.ThreadController startAI
-INFO: Start P1 AI controller thread
-Jan 18, 2025 12:04:50 PM aiinterface.ThreadController startAI
-INFO: Start P2 AI controller thread
-Jan 18, 2025 12:05:51 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.082 seconds (Expected 60.000)
-Jan 18, 2025 12:06:52 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.014 seconds (Expected 60.000)
-Jan 18, 2025 12:07:54 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.074 seconds (Expected 60.000)
-Jan 18, 2025 12:07:54 PM gamescene.Play update
-INFO: Game over
-Jan 18, 2025 12:07:59 PM gamescene.Socket initialize
-INFO: Waiting to launch a game
-Jan 18, 2025 12:08:04 PM service.SocketServer lambda$startServer$0
-INFO: Received run game request
-Jan 18, 2025 12:08:04 PM service.SocketServer lambda$startServer$0
-INFO: Client connected as Game Playing AI
-Jan 18, 2025 12:08:04 PM gamescene.Launcher update
-INFO: Transition to PLAY
-Jan 18, 2025 12:08:04 PM loader.ResourceLoader loadResource
-INFO: Loading the resources
-Jan 18, 2025 12:08:05 PM loader.ResourceLoader loadResource
-INFO: Upper attack images have been loaded.
-Jan 18, 2025 12:08:05 PM loader.ResourceLoader loadResource
-INFO: Character images have been loaded.
-Jan 18, 2025 12:08:05 PM aiinterface.ThreadController startAI
-INFO: Start P1 AI controller thread
-Jan 18, 2025 12:08:05 PM aiinterface.ThreadController startAI
-INFO: Start P2 AI controller thread
-Jan 18, 2025 12:09:06 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.001 seconds (Expected 60.000)
-Jan 18, 2025 12:10:07 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.050 seconds (Expected 60.000)
-Jan 18, 2025 12:11:08 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.113 seconds (Expected 60.000)
-Jan 18, 2025 12:11:08 PM gamescene.Play update
-INFO: Game over
-Jan 18, 2025 12:11:13 PM gamescene.Socket initialize
-INFO: Waiting to launch a game
-Jan 18, 2025 12:11:19 PM service.SocketServer lambda$startServer$0
-INFO: Received run game request
-Jan 18, 2025 12:11:19 PM service.SocketServer lambda$startServer$0
-INFO: Client connected as Game Playing AI
-Jan 18, 2025 12:11:19 PM gamescene.Launcher update
-INFO: Transition to PLAY
-Jan 18, 2025 12:11:19 PM loader.ResourceLoader loadResource
-INFO: Loading the resources
-Jan 18, 2025 12:11:19 PM loader.ResourceLoader loadResource
-INFO: Upper attack images have been loaded.
-Jan 18, 2025 12:11:19 PM loader.ResourceLoader loadResource
-INFO: Character images have been loaded.
-Jan 18, 2025 12:11:19 PM aiinterface.ThreadController startAI
-INFO: Start P1 AI controller thread
-Jan 18, 2025 12:11:19 PM aiinterface.ThreadController startAI
-INFO: Start P2 AI controller thread
-Jan 18, 2025 12:12:22 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 61.359 seconds (Expected 60.000)
-Jan 18, 2025 12:13:25 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 61.917 seconds (Expected 60.000)
-Jan 18, 2025 12:14:26 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.088 seconds (Expected 60.000)
-Jan 18, 2025 12:14:26 PM gamescene.Play update
-INFO: Game over
-Jan 18, 2025 12:14:31 PM gamescene.Socket initialize
-INFO: Waiting to launch a game
-Jan 18, 2025 12:14:38 PM service.SocketServer lambda$startServer$0
-INFO: Received run game request
-Jan 18, 2025 12:14:38 PM service.SocketServer lambda$startServer$0
-INFO: Client connected as Game Playing AI
-Jan 18, 2025 12:14:38 PM gamescene.Launcher update
-INFO: Transition to PLAY
-Jan 18, 2025 12:14:38 PM loader.ResourceLoader loadResource
-INFO: Loading the resources
-Jan 18, 2025 12:14:38 PM loader.ResourceLoader loadResource
-INFO: Upper attack images have been loaded.
-Jan 18, 2025 12:14:38 PM loader.ResourceLoader loadResource
-INFO: Character images have been loaded.
-Jan 18, 2025 12:14:38 PM aiinterface.ThreadController startAI
-INFO: Start P1 AI controller thread
-Jan 18, 2025 12:14:38 PM aiinterface.ThreadController startAI
-INFO: Start P2 AI controller thread
-Jan 18, 2025 12:15:38 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 58.905 seconds (Expected 58.467)
-Jan 18, 2025 12:16:39 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.049 seconds (Expected 60.000)
-Jan 18, 2025 12:17:43 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 62.919 seconds (Expected 60.000)
-Jan 18, 2025 12:17:43 PM gamescene.Play update
-INFO: Game over
-Jan 18, 2025 12:17:48 PM gamescene.Socket initialize
-INFO: Waiting to launch a game
-Jan 18, 2025 12:17:54 PM service.SocketServer lambda$startServer$0
-INFO: Received run game request
-Jan 18, 2025 12:17:54 PM service.SocketServer lambda$startServer$0
-INFO: Client connected as Game Playing AI
-Jan 18, 2025 12:17:54 PM gamescene.Launcher update
-INFO: Transition to PLAY
-Jan 18, 2025 12:17:54 PM loader.ResourceLoader loadResource
-INFO: Loading the resources
-Jan 18, 2025 12:17:54 PM loader.ResourceLoader loadResource
-INFO: Upper attack images have been loaded.
-Jan 18, 2025 12:17:54 PM loader.ResourceLoader loadResource
-INFO: Character images have been loaded.
-Jan 18, 2025 12:17:54 PM aiinterface.ThreadController startAI
-INFO: Start P1 AI controller thread
-Jan 18, 2025 12:17:54 PM aiinterface.ThreadController startAI
-INFO: Start P2 AI controller thread
-Jan 18, 2025 12:18:55 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.050 seconds (Expected 60.000)
-Jan 18, 2025 12:19:56 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.146 seconds (Expected 60.000)
-Jan 18, 2025 12:20:58 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.060 seconds (Expected 60.000)
-Jan 18, 2025 12:20:58 PM gamescene.Play update
-INFO: Game over
-Jan 18, 2025 12:21:03 PM gamescene.Socket initialize
-INFO: Waiting to launch a game
-Jan 18, 2025 12:21:08 PM service.SocketServer lambda$startServer$0
-INFO: Received run game request
-Jan 18, 2025 12:21:08 PM service.SocketServer lambda$startServer$0
-INFO: Client connected as Game Playing AI
-Jan 18, 2025 12:21:08 PM gamescene.Launcher update
-INFO: Transition to PLAY
-Jan 18, 2025 12:21:08 PM loader.ResourceLoader loadResource
-INFO: Loading the resources
-Jan 18, 2025 12:21:08 PM loader.ResourceLoader loadResource
-INFO: Upper attack images have been loaded.
-Jan 18, 2025 12:21:08 PM loader.ResourceLoader loadResource
-INFO: Character images have been loaded.
-Jan 18, 2025 12:21:08 PM aiinterface.ThreadController startAI
-INFO: Start P1 AI controller thread
-Jan 18, 2025 12:21:08 PM aiinterface.ThreadController startAI
-INFO: Start P2 AI controller thread
-Jan 18, 2025 12:22:09 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.044 seconds (Expected 60.000)
-Jan 18, 2025 12:23:10 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.113 seconds (Expected 60.000)
-Jan 18, 2025 12:24:12 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.034 seconds (Expected 60.000)
-Jan 18, 2025 12:24:12 PM gamescene.Play update
-INFO: Game over
-Jan 18, 2025 12:24:17 PM gamescene.Socket initialize
-INFO: Waiting to launch a game
-Jan 18, 2025 12:24:25 PM service.SocketServer lambda$startServer$0
-INFO: Received run game request
-Jan 18, 2025 12:24:25 PM service.SocketServer lambda$startServer$0
-INFO: Client connected as Game Playing AI
-Jan 18, 2025 12:24:25 PM gamescene.Launcher update
-INFO: Transition to PLAY
-Jan 18, 2025 12:24:25 PM loader.ResourceLoader loadResource
-INFO: Loading the resources
-Jan 18, 2025 12:24:25 PM loader.ResourceLoader loadResource
-INFO: Upper attack images have been loaded.
-Jan 18, 2025 12:24:25 PM loader.ResourceLoader loadResource
-INFO: Character images have been loaded.
-Jan 18, 2025 12:24:25 PM aiinterface.ThreadController startAI
-INFO: Start P1 AI controller thread
-Jan 18, 2025 12:24:25 PM aiinterface.ThreadController startAI
-INFO: Start P2 AI controller thread
-Jan 18, 2025 12:25:26 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.025 seconds (Expected 60.000)
-Jan 18, 2025 12:26:27 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.000 seconds (Expected 60.000)
-Jan 18, 2025 12:27:28 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.059 seconds (Expected 60.000)
-Jan 18, 2025 12:27:28 PM gamescene.Play update
-INFO: Game over
-Jan 18, 2025 12:27:33 PM gamescene.Socket initialize
-INFO: Waiting to launch a game
-Jan 18, 2025 12:27:40 PM service.SocketServer lambda$startServer$0
-INFO: Received run game request
-Jan 18, 2025 12:27:40 PM service.SocketServer lambda$startServer$0
-INFO: Client connected as Game Playing AI
-Jan 18, 2025 12:27:40 PM gamescene.Launcher update
-INFO: Transition to PLAY
-Jan 18, 2025 12:27:40 PM loader.ResourceLoader loadResource
-INFO: Loading the resources
-Jan 18, 2025 12:27:40 PM loader.ResourceLoader loadResource
-INFO: Upper attack images have been loaded.
-Jan 18, 2025 12:27:40 PM loader.ResourceLoader loadResource
-INFO: Character images have been loaded.
-Jan 18, 2025 12:27:40 PM aiinterface.ThreadController startAI
-INFO: Start P1 AI controller thread
-Jan 18, 2025 12:27:40 PM aiinterface.ThreadController startAI
-INFO: Start P2 AI controller thread
-Jan 18, 2025 12:28:42 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.108 seconds (Expected 60.000)
-Jan 18, 2025 12:29:43 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.011 seconds (Expected 60.000)
-Jan 18, 2025 12:30:41 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 57.367 seconds (Expected 57.367)
-Jan 18, 2025 12:30:41 PM gamescene.Play update
-INFO: Game over
-Jan 18, 2025 12:30:46 PM gamescene.Socket initialize
-INFO: Waiting to launch a game
-Jan 18, 2025 12:30:53 PM service.SocketServer lambda$startServer$0
-INFO: Received run game request
-Jan 18, 2025 12:30:53 PM service.SocketServer lambda$startServer$0
-INFO: Client connected as Game Playing AI
-Jan 18, 2025 12:30:53 PM gamescene.Launcher update
-INFO: Transition to PLAY
-Jan 18, 2025 12:30:53 PM loader.ResourceLoader loadResource
-INFO: Loading the resources
-Jan 18, 2025 12:30:53 PM loader.ResourceLoader loadResource
-INFO: Upper attack images have been loaded.
-Jan 18, 2025 12:30:53 PM loader.ResourceLoader loadResource
-INFO: Character images have been loaded.
-Jan 18, 2025 12:30:53 PM aiinterface.ThreadController startAI
-INFO: Start P1 AI controller thread
-Jan 18, 2025 12:30:53 PM aiinterface.ThreadController startAI
-INFO: Start P2 AI controller thread
-Jan 18, 2025 12:31:55 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.000 seconds (Expected 60.000)
-Jan 18, 2025 12:32:56 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.000 seconds (Expected 60.000)
-Jan 18, 2025 12:33:57 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.000 seconds (Expected 60.000)
-Jan 18, 2025 12:33:57 PM gamescene.Play update
-INFO: Game over
-Jan 18, 2025 12:34:02 PM gamescene.Socket initialize
-INFO: Waiting to launch a game
-Jan 18, 2025 12:34:08 PM service.SocketServer lambda$startServer$0
-INFO: Received run game request
-Jan 18, 2025 12:34:08 PM service.SocketServer lambda$startServer$0
-INFO: Client connected as Game Playing AI
-Jan 18, 2025 12:34:08 PM gamescene.Launcher update
-INFO: Transition to PLAY
-Jan 18, 2025 12:34:08 PM loader.ResourceLoader loadResource
-INFO: Loading the resources
-Jan 18, 2025 12:34:08 PM loader.ResourceLoader loadResource
-INFO: Upper attack images have been loaded.
-Jan 18, 2025 12:34:08 PM loader.ResourceLoader loadResource
-INFO: Character images have been loaded.
-Jan 18, 2025 12:34:08 PM aiinterface.ThreadController startAI
-INFO: Start P1 AI controller thread
-Jan 18, 2025 12:34:08 PM aiinterface.ThreadController startAI
-INFO: Start P2 AI controller thread
-Jan 18, 2025 12:35:09 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.000 seconds (Expected 60.000)
-Jan 18, 2025 12:36:00 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 49.000 seconds (Expected 49.000)
-Jan 18, 2025 12:37:01 PM gamescene.Play processingRoundEnd
-INFO: Round Duration: 60.000 seconds (Expected 60.000)
-Jan 18, 2025 12:37:01 PM gamescene.Play update
-INFO: Game over
-Jan 18, 2025 12:37:06 PM gamescene.Socket initialize
-INFO: Waiting to launch a game
-./compile_run_linux.sh: line 37: 154783 Killed                  java -cp "bin:lib/*:lib/lwjgl/*:lib/lwjgl/natives/linux/amd64/*" Main --limithp 400 400 --grey-bg --pyftg-mode $ARGS
+./compile_run_linux.sh: line 37: 1113188 Killed                  java -cp "bin:lib/*:lib/lwjgl/*:lib/lwjgl/natives/linux/amd64/*" Main --limithp 400 400 --grey-bg --pyftg-mode $ARGS

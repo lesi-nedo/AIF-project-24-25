@@ -89,7 +89,7 @@ ENERGY_BEST_SPECIAL = 150
 EPSILON_PROB = 0.85 # Probability of not taking a special move (epsilon-greedy)
 AGGRESSIVE_PROB = 0.92 # Probability of taking an aggressive move
 MIN_AGGRESSIVE_PROB = 0.89
-CAN_HIT_Y = 250
+CAN_HIT_Y = 55
 STAGE_WIDTH = 960
 STAGE_HEIGHT = 640
 MAX_CAN_HIT_X = 200
@@ -256,8 +256,17 @@ def evaluate_state(my_x: int, op_x: int, my_y: int, op_y: int,
     
     return max(min(score, 1.0), 0.0)
 
+def equal_more_or_less(my_val: int, op_val: int, threshold: int) -> str:
+    if my_val > op_val + threshold:
+        return False
+    if my_val < op_val - threshold:
+        return False
+    return True
 
-def get_eff_actions(distance_x: int, distance_y: int, my_prev_action: str, score: float, opponent_pred_action_type: str) -> Tuple[list, list]:
+def get_eff_actions(
+        distance_x: int, distance_y: int, my_prev_action: str, score: float, 
+        opponent_pred_action_type: str, opponent_prev_action:str,
+        my_y:int, opp_y:int ) -> Tuple[list, list]:
     local_actions = []
     local_weights = None
     
@@ -270,17 +279,38 @@ def get_eff_actions(distance_x: int, distance_y: int, my_prev_action: str, score
         local_actions =  anti_air_actions
         performance_weights = [most_effective_actions.get(action, 0) / most_effective_actions["total"] for action in local_actions]
         performance_weights = list(map(add, performance_weights, probabilities_anti_air))
-        local_weights = get_action_weights(local_actions, score, performance_weights, opponent_pred_action_type)
+        local_weights = get_action_weights(
+            local_actions, score, performance_weights, opponent_pred_action_type, opponent_prev_action, 
+            my_prev_action, my_y, opp_y)
     
     return local_actions, local_weights
 
 def get_action_weights(actions: list, state_score: float, base_weights: list,
-                      opponent_action_type: str) -> list:
+                      opponent_action_type: str, opponent_prev_action: Term, my_prev_action:Term, my_y:int, opp_y:int) -> list:
     """Calculate action weights based on state evaluation"""
     base_weights = base_weights.copy()
 
     for indx, action in enumerate(actions):
         weight = 1.0
+
+        if "jump" in str(my_prev_action) and action in arial_moves_actions:
+            weight = 2.0
+        
+        if "jump" in str(opponent_prev_action) and action in anti_air_actions:
+            weight = 2.0
+        
+        if "jump" in str(action) and (my_y > opp_y or my_y < opp_y):
+            weight = 0.5
+        if my_y < opp_y and action in arial_moves_actions:
+            weight = 0.5
+        if my_y > opp_y and action in anti_air_actions:
+            weight = 0.5
+
+        if my_y > opp_y and action in arial_moves_actions:
+            weight = 1.5
+        
+        if equal_more_or_less(my_y, opp_y, 50) and action in long_attack_actions:
+            weight = 2.5
         
         # Defensive adjustments
         if opponent_action_type == "attack":
@@ -301,7 +331,17 @@ def get_action_weights(actions: list, state_score: float, base_weights: list,
         base_weights[indx] += weight
    
     return base_weights
-
+def check_and_update(
+        my_prev_action, opponent_prev_action, my_prev_action_type, opponent_prev_action_type, my_health, my_prev_health, 
+        opp_health, my_curr_energy, my_prev_energy, distance_y, distance_x, opp_prev_health):
+    if my_prev_action_type == "attack" and (opponent_prev_action_type == "attack" or opponent_prev_action_type == "special"):
+        if ((my_health == my_prev_health and my_curr_energy >= my_prev_energy) or 
+            (opp_health < opp_prev_health)):
+            if distance_y < CAN_HIT_Y and distance_x < MAX_CAN_HIT_X:
+                action_key = counteractive_actions.get(opponent_prev_action, (my_prev_action, 0))
+                action_key  = (action_key[0], action_key[1] + 1)
+                counteractive_actions.update({opponent_prev_action: action_key})
+                counteractive_actions["total"] += 1
 
 def get_one_foreach_random_action() -> list:
     rand_b_action = rng.choice(attack_b_actions, size=1, replace=False)
@@ -312,12 +352,12 @@ def get_one_foreach_random_action() -> list:
     return actions_.tolist()
 @problog_export(
         '+int', '+int', '+int', '+int', '+int', '+int', '+int', '+int', '+int', '+int',
-        '+int', '+int',  '+int', '+str', '+str', '+str', '+list', '+list',  '-list'
+        '+int', '+int',  '+int', '+str', '+str', '+str', '+list', '-list'
     )
 def possible_actions(
         my_x:int, op_x:int, my_y:int, op_y:int, my_facing_dir:int, my_health: int, my_prev_health:int, opp_health:int, opp_prev_health:int,
         my_curr_energy: int, my_prev_energy:int, opponent_curr_energy: int, opponent_prev_energy: int, 
-        opponent_pred_action_type: str, my_prev_action: str, opponent_prev_action,  most_prob_opponent_actions: list[str],
+        opponent_pred_action_type: str, my_prev_action: str, opponent_prev_action,
         opponent_hbox: list[int]
     ) -> list[str]:
     distance_x = np.abs(my_x - op_x)
@@ -334,16 +374,8 @@ def possible_actions(
     actions = []
     weights = []
     
-    opponent_prev_action_type = actions_type.get(str(opponent_prev_action).upper(), "non_attack")
     my_prev_action_type = actions_type.get(str(my_prev_action).upper(), "non_attack")
-    if my_prev_action_type == "attack" and (opponent_prev_action_type == "attack" or opponent_prev_action_type == "special"):
-        if ((my_health == my_prev_health and my_curr_energy >= my_prev_energy) or 
-            (opp_health < opp_prev_health)):
-            action_key = counteractive_actions.get(opponent_prev_action, (my_prev_action, 0))
-            action_key  = (action_key[0], action_key[1] + 1)
-            counteractive_actions.update({opponent_prev_action: action_key})
-            counteractive_actions["total"] += 1
-            
+    
     
     if my_prev_action_type == "special" or my_prev_action_type == "attack":
         bonus = 0
@@ -366,7 +398,7 @@ def possible_actions(
     if (opponent_curr_energy >= ENERGY_BEST_SPECIAL - 2):
         return [Term("for_jump")]
     
-    if opponent_curr_energy > 9 and distance_y < CAN_HIT_Y and distance_x > MAX_CAN_HIT_X + np.random.randint(0, 40):
+    if opponent_curr_energy > 9 and distance_y < CAN_HIT_Y-np.random.randint(10, 30) and distance_x > MAX_CAN_HIT_X + np.random.randint(0, 40):
         if ((opponent_pred_action_type == "special" and prob > AGGRESSIVE_PROB) or 
             opponent_curr_energy < opponent_prev_energy):
             return [Term("for_jump")]
@@ -377,46 +409,17 @@ def possible_actions(
             return [Term("stand_d_df_fc")]
         else:
             return [Term("back_jump"), Term("for_jump")]
-
+    
     if distance_x > MAX_CAN_HIT_X+np.random.randint(0, 40):
         actions.extend(forward_actions)
-        weights.extend(get_action_weights(forward_actions, score, probabilities_forward, opponent_pred_action_type))
+        weights.extend(get_action_weights(
+            forward_actions, score, probabilities_forward, 
+            opponent_pred_action_type, opponent_prev_action, my_prev_action, my_y, op_y))
         sum_weights = sum(weights)
         probabilities = [w/sum_weights for w in weights]
         return rng.choice(actions, p=probabilities, size=2, replace=False).tolist()
     
     else:
-        
-        if len(most_prob_opponent_actions) > 0:
-            for most_prob_opp_action in most_prob_opponent_actions:
-                    most_prob_opp_action = term2str(most_prob_opp_action)
-                    prob,action = most_prob_opp_action.split("-")
-                    action = action.strip()
-                    prob = float(prob)
-                    if action in counteractive_actions:
-                        action_key = counteractive_actions[action]
-                        if action_key[1] > 0:
-                            action_type = actions_type.get(action, "non_attack")
-                            if action_type == "attack":
-                                action = Term(action)
-                                actions.append(action)
-                                weights.append(counteractive_actions[action][1] / counteractive_actions["total"])
-            total_actions = len(actions)
-
-            if  total_actions > 0 and (score < 0.5 or opponent_pred_action_type == "attack"):
-                
-                actions,weights = compute_helper(actions, facing_dirs, total_b_damage, positions=positions, opponent_hbox=opponent_hbox, base_weights=weights)
-            
-                total_actions = len(actions)
-
-                if total_actions > 0:
-                    performance_weights = [most_effective_actions[action] / most_effective_actions["total"] for action in actions]
-                    counter_weights = [counteractive_actions[action][1] / counteractive_actions["total"] for action in actions]
-                    performance_weights = list(map(add, performance_weights, counter_weights))
-                    weights = list(map(add, weights, performance_weights))
-                    sum_weights = sum(weights)
-                    probabilities = [w/sum_weights for w in weights] 
-                    return rng.choice(actions, p=probabilities, size=1, replace=False).tolist()
     
         if (my_curr_energy > 4 and 
                 random.random() > EPSILON_PROB and distance_y < CAN_HIT_Y
@@ -425,22 +428,30 @@ def possible_actions(
             for s_action in attack_s_actions:
                 if energy_costs.get(str(s_action)) < my_curr_energy:
                     local_actions, local_weights = compute_helper([s_action], facing_dirs, total_damage_s, opponent_hbox=opponent_hbox, positions=positions)
-                    local_weights = get_action_weights(local_actions, score, local_weights, opponent_pred_action_type)
+                    local_weights = get_action_weights(
+                        local_actions, score, local_weights, opponent_pred_action_type,
+                        opponent_prev_action, my_prev_action, my_y, op_y)
                     actions.extend(local_actions)
                     weights.extend(local_weights)
-
+        
+        if distance_y > CAN_HIT_Y + np.random.randint(10, 20) and my_y < op_y - np.random.randint(10, 20):
+            actions.extend(backward_actions)
+            weights.extend(probabilities_backward)
         
         if (not opponent_pred_action_type == "attack" or random.random() < AGGRESSIVE_PROB):
             actions_local, base_weights = compute_helper(attack_b_actions, facing_dirs, total_b_damage,opponent_hbox=opponent_hbox, positions=positions)
             base_weights = list(map(add, base_weights, probabilities_attack_b))
-            weights.extend(get_action_weights(actions_local, score, base_weights, opponent_pred_action_type))
+            weights.extend(get_action_weights(
+                actions_local, score, base_weights, opponent_pred_action_type,
+                opponent_prev_action, my_prev_action, my_y, op_y))
             actions.extend(actions_local)
             AGGRESSIVE_PROB = min(MIN_AGGRESSIVE_PROB, AGGRESSIVE_PROB - 0.0001*my_prev_health/my_health)
         else:
             
   
             actions.extend(non_attack_actions)
-            weights.extend(get_action_weights(non_attack_actions, score, probabilities_non_attack, opponent_pred_action_type))
+            weights.extend(get_action_weights(non_attack_actions, score, probabilities_non_attack, opponent_pred_action_type,
+                                              opponent_prev_action, my_prev_action, my_y, op_y))
         
         
         if len(actions) == 0 or score < 0.5:
@@ -453,18 +464,20 @@ def possible_actions(
                 local_actions = backward_actions + defensive_actions
                 local_weights = probabilities_backward + probabilities_defensive
             else:
-                local_actions,local_weights = get_eff_actions(distance_x, distance_y, my_prev_action, score, opponent_pred_action_type)
+                local_actions,local_weights = get_eff_actions(
+                    distance_x, distance_y, my_prev_action, score, opponent_pred_action_type,
+                    opponent_prev_action, my_y, op_y)
             
             actions = local_actions
             weights = local_weights
     total_actions = len(actions)
     if total_actions > 0:
-        if total_actions < 3:
+        if total_actions < 4:
             return actions
 
         weights_sum = sum(weights)
         probabilities = [w/weights_sum for w in weights]
-        return rng.choice(a=actions, p=probabilities, size=3, replace=False).tolist()
+        return rng.choice(a=actions, p=probabilities, size=2, replace=False).tolist()
     return actions
 
 

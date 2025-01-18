@@ -18,7 +18,7 @@ def main(
     ):
     
     typer.echo(f"Starting the process with host: {host}, port: {port}")
-    asyncio.run(start_process(host, port, plot_scenes=plot_scenes, simo_agent=True))
+    asyncio.run(start_process(host, port, plot_scenes=plot_scenes, simo_agent=True, keep_stats=True))
     
 
 if __name__ == '__main__':

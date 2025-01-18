@@ -25,7 +25,8 @@ async def start_process(
     game_num: int = 1,
     plot_scenes: bool=False,
     problog_agent: bool=False,
-    prolog_ai: bool=False
+    prolog_ai: bool=False,
+    echo_actions: bool=False,
 ):
     exploration_constant = exploration_constant
     iteration_limit = iteration_limit
@@ -40,7 +41,7 @@ async def start_process(
         agent1 = PrologAI()
         agent_name = "PrologAi"
     
-    agent2 = MctsAi(plot_scenes = plot_scenes, exploration_constant=exploration_constant, iteration_limit=iteration_limit)
+    agent2 = MctsAi(plot_scenes = plot_scenes, exploration_constant=exploration_constant, iteration_limit=iteration_limit, echo_actions=echo_actions)
     gateway.register_ai("MctsAi", agent2)
     if not keyboard:
         gateway.register_ai(agent_name, agent1)

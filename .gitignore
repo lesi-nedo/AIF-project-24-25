@@ -170,3 +170,5 @@ test.sh
 resulttable
 game_process.pid
 prompt.txt
+logs/*
+logs/**/*

@@ -1,22 +1,16 @@
 Project root: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25-M
-Starting the process with host: 127.0.0.1, port: 29196
-2025-01-18 16:25:51,847 - INFO - Start P1 AI controller task (MctsAi)
-2025-01-18 16:25:51,847 - INFO - Start P2 AI controller task (ProblogAgent)
-2025-01-18 16:25:51,937 - INFO - initialize
-Mean time taken: 0.06527971545694328
- My hp left: 220, Opponent hp left: 0
-2025-01-18 16:26:22,989 - INFO - round end: RoundResult(current_round=1, remaining_hps=[0, 220], elapsed_frame=1793)
-Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
-Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
-Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
-Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
-Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
-Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
-Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
-Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
-2025-01-18 16:27:12,205 - INFO - round end: RoundResult(current_round=2, remaining_hps=[0, 146], elapsed_frame=2881)
-Mean time taken: 0.08242708023856668
- My hp left: 146, Opponent hp left: 0
-2025-01-18 16:28:09,905 - INFO - Closing MonteCarlo Agent
-2025-01-18 16:28:09,908 - INFO - Closing ProblogAgent
-Saving stats to path: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25-M/prolog_based/problog_agent_ole/stats
+Starting the process with host: 127.0.0.1, port: 27717
+2025-01-18 22:28:25,678 - INFO - Start P1 AI controller task (MctsAi)
+2025-01-18 22:28:25,678 - INFO - Start P2 AI controller task (ProblogAgent)
+2025-01-18 22:28:25,765 - INFO - initialize
+2025-01-18 22:29:06,840 - INFO - round end: RoundResult(current_round=1, remaining_hps=[0, 106], elapsed_frame=2393)
+Mean time taken: 0.027235059140556475
+ My hp left: 106, Opponent hp left: 0
+Mean time taken: 0.030220736879290958
+ My hp left: 258, Opponent hp left: 0
+2025-01-18 22:29:48,455 - INFO - round end: RoundResult(current_round=2, remaining_hps=[0, 258], elapsed_frame=2352)
+2025-01-18 22:30:34,981 - INFO - round end: RoundResult(current_round=3, remaining_hps=[0, 100], elapsed_frame=2791)
+2025-01-18 22:30:34,986 - INFO - game end
+2025-01-18 22:30:40,004 - INFO - Closing MonteCarlo Agent
+2025-01-18 22:30:40,010 - INFO - Closing ProblogAgent
+Saving stats to path: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25-M/prolog_based/problog_agent_ole/stats_temp
