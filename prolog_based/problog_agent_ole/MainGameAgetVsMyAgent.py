@@ -14,7 +14,7 @@ from typing_extensions import Annotated, Optional
 from pyftg.socket.aio.gateway import Gateway
 from pyftg.utils.logging import DEBUG, set_logging
 
-from ProblogAgent import ProblogAgent
+from prolog_based.problog_agent_ole.ProblogAgent import ProblogAgent
 
 app = typer.Typer(pretty_exceptions_enable=False)
 from prolog_based.prolog_agent_simo.PrologAI import PrologAI
