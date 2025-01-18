@@ -116,6 +116,7 @@ counteractive_actions = {
 }
 counteractive_actions['total'] = 1
 current_dir = os.path.dirname(os.path.abspath(__file__))
+print(f"Current dir: {current_dir}")
 motion_data = pd.read_csv(os.path.join(current_dir,"Motion.csv"))
 motion_data['motionName'] = motion_data['motionName'].apply(lambda x: x.lower())
 motion_data = motion_data.set_index('motionName')
