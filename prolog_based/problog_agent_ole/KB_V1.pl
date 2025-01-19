@@ -247,7 +247,6 @@ is_long_range(X1, X2) :-
     energy(opponent, Energy),
     curr_pos(me, X1, Y1), 
     curr_pos(opponent, X2, Y2),
-    curr_energy_value(opponent, E),
     opp_state(State, _, _),
     (
         ((is_opp_air(State); is_opp_crouch(State); is_opp_stand(State)),

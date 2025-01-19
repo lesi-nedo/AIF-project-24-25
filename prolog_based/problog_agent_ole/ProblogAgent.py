@@ -702,7 +702,7 @@ class ProblogAgent(AIInterface):
         """
         Creates clauses for the current state of the agent. Used by action utility predicates.
         """
-        return f"my_statewhether the character can act. this parameter is not delayed({self.my_character_data.state.value}).\n"
+        return f"my_state({self.my_character_data.state.value}).\n"
     
     def _get_hbox_clause(self, player: str):
         """
