@@ -107,7 +107,7 @@ class ProblogAgent(AIInterface):
     def __init__(self, k_most_prob_actions: int = 5, plot_scenes: bool = False, echo_actions=False, width: int = 960, height: int = 640, **kwargs):
         # time.sleep(20)
         super().__init__()
-        self.blind_flag = False # It should be used to get the data screen from the game, but it is not working correctly
+        self.blind_flag = True # It should be used to get the data screen from the game, but it is not working correctly
         self.width = width 
         self.height = height
         self.play_number: bool
@@ -326,8 +326,7 @@ class ProblogAgent(AIInterface):
         self.last_hp = game_data.max_hps[self.my_number]
         self.last_opponent_hp = game_data.max_hps[self.opponent_number]
         
-        if self.is_blind():
-            exit(1)
+        
         if not SDD.is_available():
             raise ImportError("SDD package not available, are you running on Windows?, then not supported. If linux, try to install with 'pip install problog[sdd]'")
         

@@ -93,7 +93,7 @@ CAN_HIT_Y = 55
 STAGE_WIDTH = 960
 STAGE_HEIGHT = 640
 MAX_CAN_HIT_X = 200
-BEST_K_ATTACKS = 4
+BEST_K_ATTACKS = 3
 WEIGHTS = {
     'distance': 0.25,
     'health': 0.25,
