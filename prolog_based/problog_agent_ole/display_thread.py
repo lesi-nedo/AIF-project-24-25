@@ -12,6 +12,24 @@ logger = logging.getLogger(__name__)
 
 # Add DisplayThread class after imports
 class DisplayThread(threading.Thread):
+    """
+        Thread class to handle display of game screen and logs
+        It can display the game screen and log messages in a Jupyter notebook
+
+        Attributes:
+        width (int): Width of the game screen
+        height (int): Height of the game screen
+        queue (Queue): Queue to receive screen data
+        log_queue (Queue): Queue to receive log messages
+        running (bool): Flag to indicate if the thread is running
+        fig (Optional[plt.Figure]): Matplotlib figure object
+        ax (Optional[plt.Axes]): Matplotlib axes object
+        img_plot: Matplotlib image plot object
+        frame_counter (int): Counter to keep track of frames
+        skip_frames (int): Number of frames to skip for display. 
+           To reduce load on the notebook
+
+    """
     def __init__(self, width: int, height: int):
         super().__init__()
         self.width = width
@@ -26,6 +44,12 @@ class DisplayThread(threading.Thread):
         self.skip_frames = 8
 
     def get_latest_logs(self) -> List[str]:
+        """
+        Get the latest logs from the log queue
+        Returns:
+        List[str]: List of log messages
+    
+        """
         logs = []
         # Create a temporary list of all logs
         while not self.log_queue.empty():
@@ -39,7 +63,11 @@ class DisplayThread(threading.Thread):
         return logs
 
     def add_log(self, message: str) -> None:
-        """Thread-safe method to add a log message"""
+        """
+        Add a log message to the log queue
+        Args:
+        message (str): Log message to add
+        """
         try:
             if self.log_queue.full():
                 # Remove oldest log if queue is full
@@ -52,6 +80,10 @@ class DisplayThread(threading.Thread):
             pass  # Skip if queue is full
         
     def run(self):
+        """
+        Main loop to run the display thread
+        
+        """
         self._init_display()
         while self.running:
             
@@ -70,6 +102,10 @@ class DisplayThread(threading.Thread):
                 logger.error(f"Display thread error: {e}")
                 
     def _init_display(self):
+        """
+        Initialize the display with matplotlib
+
+        """
         matplotlib.use('module://ipykernel.pylab.backend_inline')
         plt.ioff()
         
@@ -105,6 +141,12 @@ class DisplayThread(threading.Thread):
         self.display_handle = display.display(self.fig, display_id=True)
         
     def _update_display(self, screen_data):
+        """
+        Update the display with new screen data
+        Args:
+        screen_data (bytes): Screen data as bytes
+
+        """
         if not isinstance(screen_data, bytes):
             return
             
@@ -131,6 +173,10 @@ class DisplayThread(threading.Thread):
             logger.error(f"Error updating display: {e}")
             
     def stop(self):
+        """
+        Stop the display thread
+    
+        """
         self.running = False
         if self.fig:
             plt.close(self.fig)

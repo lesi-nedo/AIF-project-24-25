@@ -2,8 +2,6 @@
 :- use_module(library(lists)).
 :- use_module(library(aggregate)).
 
-% Remember delay of 14/15 frames before the action is executed
-% stand_fa is ineffective against stand_guard, crouch_guard, air_guard, and whe walks forward
 
 agent(me).
 agent(opponent).
@@ -18,6 +16,7 @@ possible_state(down).
 0.1::is_opp_air(S) :- opp_state(S, _, _), S = air.
 0.05::is_opp_down(S) :- opp_state(S, _, _), S = down.
 
+% opponent state probabilities based on counting
 % Base state probabilities (sum to 1)
 P::opp_state(S, C_S, N) :- 
     possible_state(S),
@@ -25,6 +24,7 @@ P::opp_state(S, C_S, N) :-
     count_total_states(N),
     P is C_S/N.
 
+% The python class adds curr_hp_value as extra clause
 0.8::health_value(A, X) :- agent(A), A = opponent, curr_hp_value(A, X).
 0.8::energy_value(A, X) :- agent(A), A = opponent, curr_energy_value(A,X).
 1.0::health_value(A, X) :- agent(A), A = me, curr_hp_value(A, X).
@@ -52,7 +52,7 @@ ba_action(air_db).
 ba_action(air_b). 
 ba_action(air_da). 
 
-
+% Categorizes actions based on their effects
 0.98::action_makes_fly_opponent(S) :- S = stand_f_d_dfb; S = stand_d_df_fc.
 
 0.95::action_downs_opponent(S) :- S = stand_f_d_dfa; S = stand_d_db_bb; S = crouch_fb.
@@ -183,13 +183,12 @@ energy_gain(air_da, 5).
 energy_gain(forward_walk, 0).
 energy_gain(crouch, 0).
 
-
+% Opposite facing direction clause
 opposite_facing_dir(me, opponent) :- 
     facing_dir(me, FDir1), facing_dir(opponent, FDir2), FDir1 \= FDir2.
 
 
-max_distance_type(attack, 110).
-max_distance_type(special, 1000).
+% They serve to estimate opponent's' next action type 
 is_close_range(X1, X2) :-
     max_distance_type(attack, AvgD),
     abs(X1 - X2) =< AvgD.
@@ -243,7 +242,7 @@ is_long_range(X1, X2) :-
 0.05::energy_action_pref(low, non_attack).
 
 
-
+% Predicts the opponent's' next action type based on the current state
 0.8::predict_opp_next_action_type(Type) :- 
     energy(opponent, Energy),
     curr_pos(me, X1, Y1), 
@@ -260,7 +259,7 @@ is_long_range(X1, X2) :-
         )
     ).
     
-
+% Helpers for calculating utility
 calculate_damage_ratio(Damage, DamageRatio) :-
     number(Damage),
     DamageRatio is Damage / 110.
@@ -273,8 +272,7 @@ calculate_energy_ratio(EGain, ECost, EnergyRatio) :-
     EnergyRatio is GainRatio - CostRatio.
 
 
-max_dist_y(55).
-
+% Calculates the utility of an action based on the current state
 action_utility(Action, FinalUtility) :-
     curr_pos(me, X1, Y1),
     curr_pos(opponent, X2, Y2),
@@ -366,12 +364,20 @@ action_utility(Action, FinalUtility) :-
         FinalUtility is 0.0
     )).
 
+
+% Facts about attack distances
+max_distance_type(attack, 110).
+max_distance_type(special, 1000).
+max_dist_y(55).
+
 is_combat_action(Action) :-
     bs_action(Action); ba_action(Action); s_action(Action).
 
 is_non_combat(Action) :-
     m_action(Action); d_action(Action).
 
+% Finds the possible actions based on the current state, energy, health, and previous actions
+% Then calculates the utility of each action and returns the best action and its utility
 find_my_best_action(BestAction, BestUtility) :-
     curr_pos(me, X1, Y1),
     curr_pos(opponent, X2, Y2),
@@ -409,7 +415,6 @@ find_my_best_action(BestAction, BestUtility) :-
         )
     ).
       
-
 get_action_utility(Action, Utility-Action) :-
     action_utility(Action, Utility).
 
@@ -417,13 +422,14 @@ find_utilities(ActionList, UtilityList) :-
     maplist(get_action_utility, ActionList, UtilityList).
 
 
-
+% Computes the probability of each action based on the number of times it has been used
 P::actions_prob(A, P) :- 
     count_action(A, C_A), 
     count_total_actions(N),
     P is C_A/N.
 
-  
+% Finds the K actions with the highest probabilities
+% This clause was used to find counter moves, but the mechanism did not improve the agent's' performance
 find_best_k_prob_actions(K, BestActions) :-
     
     findall(Prob-Action, actions_prob(Action, Prob), ActionList),

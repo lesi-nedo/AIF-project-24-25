@@ -67,12 +67,48 @@ problog_logger = logging.getLogger("problog")
 problog_logger.setLevel(logging.ERROR)
 
 class ProblogAgent(AIInterface):
-    def __init__(self, k_best_value: int = 5, plot_scenes: bool = False, echo_actions=False, width: int = 960, height: int = 640, **kwargs):
+    """
+    ProblogAgent class that implements the AIInterface for the ProblogAgent. This agent uses ProbLog 
+    for probabilistic reasoning to select actions in a fighting game environment.
+    The agent maintains game state information across multiple rounds and uses probabilistic logic programming
+    to make decisions about which actions to take based on the current game state, opponent behavior, 
+    and learned patterns.
+    Attributes:
+        plot_scenes (bool): Whether to plot game scenes visually (default: False) 
+        echo_actions (bool): Whether to print selected actions (default: False)
+        width (int): Width of game window (default: 960)
+        height (int): Height of game window (default: 640)
+        blind_flag (bool): Whether agent operates in blind mode
+        width (int): Window width
+        height (int): Window height
+        play_number (bool): Player number identifier
+        game_data (GameData): Game state data
+        cc (CommandCenter): Command center for executing actions
+        my_character_data (CharacterData): Current player character data
+        opponent_character_data (CharacterData): Opponent character data
+        current_round (int): Current game round number
+        aggressive_action (bool): Flag for aggressive actions
+    State Tracking:
+        - Tracks positions, hitboxes, actions, energy levels and health for both players
+        - Maintains history of states and actions across multiple rounds
+        - Records timing and performance metrics
+        - Tracks round results and game statistics
+    Methods:
+        initialize: Sets up the agent with game data and player number
+        processing: Main processing loop for selecting actions
+        round_end: Handles end of round cleanup and statistics
+        game_end: Handles end of game cleanup
+        close: Cleanup and save statistics
+    The agent uses ProbLog rules defined in an external .pl file for action selection logic.
+    Statistical tracking helps analyze agent performance across games.
+    """
+
+
+    def __init__(self, k_most_prob_actions: int = 5, plot_scenes: bool = False, echo_actions=False, width: int = 960, height: int = 640, **kwargs):
         # time.sleep(20)
         super().__init__()
-        self.MULTIPLIER = 4
-        self.blind_flag = False
-        self.width = width
+        self.blind_flag = False # It should be used to get the data screen from the game, but it is not working correctly
+        self.width = width 
         self.height = height
         self.play_number: bool
         self.game_data: GameData 
@@ -89,9 +125,7 @@ class ProblogAgent(AIInterface):
         self.my_actions_inferred: dict[int, list[Action]] = {1: [], 2: [], 3: []}
         self.kb = ""
         self.engine = DefaultEngine()
-        self.k_best_value = k_best_value
         self.db_org = None
-        self.sent = False
         self.my_actions: dict[int, list[Action]] = {1: [Action.STAND.value], 2: [Action.STAND.value], 3: [Action.STAND.value]}
         self.opponent_actions: dict[int, list[Action]] = {1: [Action.STAND.value], 2: [Action.STAND.value], 3: [Action.STAND.value]}
         self.opponent_actions_type: dict[int, list[Action]] = {1: ["non_attack"], 2: ["non_attack"], 3: ["non_attack"]}
@@ -117,9 +151,9 @@ class ProblogAgent(AIInterface):
         self.echo = typer.echo
         self.width_game = 960
         self.height_game = 640
-        self.k_most_prob_actions = 4
+        self.k_most_prob_actions = k_most_prob_actions # Number of opponent's best actions to consider. It is not used in the final version
         self.current_round = 1
-        self.aggressive_action = False
+        self.aggressive_action = False # Flag for aggressive actions, if is true, the agent will add the opponent's action to the Knowledge Base. (It is not used in the final version)
         # Initialize plot on first frame if not already done
         if self.plot_scenes:
             self._init_plots()
@@ -154,6 +188,7 @@ class ProblogAgent(AIInterface):
             1: 1,
             0: -1
         }
+        # Counters for state tracking, used for probabilistic estimation of opponent state
         self.counters = {
             'me': {
                 'stand': 0,
@@ -170,16 +205,6 @@ class ProblogAgent(AIInterface):
                 'total': 1
             }
         }
-
-        self.counter_actions = {}
-        self.counter_actions_total = 1
-        self.clauses_to_add = dict()
-
-        self.select_box_side = {
-            0: "left",
-            1: "right"
-        }
-
         self.state_counters = {
             'me': {
                 'stand': lambda: self._increment_counter('me', 'stand'),
@@ -194,6 +219,17 @@ class ProblogAgent(AIInterface):
                 'crouch': lambda: self._increment_counter('opponent', 'crouch')
             }
         }
+        
+        # Counter for opponent actions to estimate aggressive actions. (Final version does not use this)
+        self.counter_actions = {}
+        self.counter_actions_total = 1
+        self.clauses_to_add = dict()
+
+        self.select_box_side = {
+            0: "left",
+            1: "right"
+        }
+
 
         self.name_conv = {
             "me": "my",
@@ -210,12 +246,20 @@ class ProblogAgent(AIInterface):
         return self.__class__.__name__
 
     def is_blind(self) -> bool:
+        """
+        Check if the agent is operating in blind mode, i.e. without access to screen data
+        """
         return self.blind_flag
     
     def to_string(self):
         return self.name()
     
     def _init_attributes(self):
+        """
+        Initialize agent attributes and data structures with default values
+        Adds clauses to the ProbLog knowledge base for initial game state
+        Grounds the knowledge base with the initial game state
+        """
         self.key = Key()
         self.frame_data = FrameData()
 
@@ -266,6 +310,13 @@ class ProblogAgent(AIInterface):
         
 
     def initialize(self, game_data: GameData, player_number: int):
+        """
+        Initialize the agent with game data and player number
+        Args:
+        game_data (GameData): Game data object
+        player_number (int): Player number identifier
+    
+        """
         self.cc = CommandCenter()
         self.key = Key()
         self.my_number = int(player_number)
@@ -299,11 +350,19 @@ class ProblogAgent(AIInterface):
         pass
 
     def input(self) -> Key:
-        
+        """
+        Get the current key input for the agent
+        It is used to get the key input from the agent to the game
+        """
         return self.key
 
     def get_information(self, frame_data: FrameData, is_control: bool):
-        
+        """
+        Get the current frame data and control status
+        Args:
+        frame_data (FrameData): Frame data object
+        is_control (bool): whether the character can act. this parameter is not delayed
+        """
         self.frame_data = frame_data
         self.my_character_data = self.frame_data.get_character(self.my_number)
         self.opponent_character_data = self.frame_data.get_character(self.opponent_number)
@@ -317,32 +376,14 @@ class ProblogAgent(AIInterface):
         self.audio_data = audio_data
 
 
-    def _is_complex_query(self, query: str) -> bool:
-        """Determine if a query is complex enough to need bounded approximation"""
-        # Simple heuristic based on query length and operators
-        complexity_indicators = ['not', 'and', 'or']
-        return len(query) > 50 or any(op in query.lower() for op in complexity_indicators)
-
-    def _get_program_string(self) -> str:
-        """Get the current ProbLog program as a string"""
-        # Combine your knowledge base with current game state
-        game_state = self._get_game_state_facts()
-        return f"{self.kb_rules}\n{game_state}"
-
-    def _get_game_state_facts(self) -> str:
-        """Convert current game state to ProbLog facts"""
-        player = self.frame_data.get_character(self.my_number)
-        opponent = self.frame_data.get_character(self.opponent_number)
-        
-        return f"""
-        hp(player, {player.hp}).
-        hp(opponent, {opponent.hp}).
-        position(player, {player.x}, {player.y}).$
-        position(opponent, {opponent.x}, {opponent.y}).
-        """ 
     
     def select_action_from_problog_results(self, result):
-        """Selects an action probabilistically from ProbLog k-best results."""
+        """
+        It groups each best action (with utility) inferred by ProbLog and selects one of them based on their weights (utility + probabilities).
+        If the result is empty, it selects a random action from the list of possible actions. Result is empty when the `find_best_action` predicate does not find any action.
+        Args:
+        result (dict): Dictionary of action-utility and their probabilities
+        """
         try:
             # self.echo(f"Result: {result}")
             # Check if result exists and is iterable
@@ -362,11 +403,13 @@ class ProblogAgent(AIInterface):
                         
                         # self.echo(f"Res- prob: {res.probability}")
                         action = term2str(res.args[0])
+                        # If the action is super special, return it immediately
                         if action == "stand_d_df_fc":
                             return action
                         if hasattr(res.args[1], 'compute_value'):
                             weight += res.args[1].compute_value()
                         else:
+                            # if here, it means that there was no action with utility, so it is a random attack action
                             weight += res.args[1]
                             action = term2str(rng.choice(attack_b_actions, size=1, replace=False)[0])
 
@@ -388,6 +431,8 @@ class ProblogAgent(AIInterface):
 
             action_weights_list = [(action, prob) for action, prob in action_weights_dit.items() if prob > 0.0]
             if len(action_weights_list) == 0:
+                # If here, it means that there was no action with utility-probability greater than 0.0.
+                # It happens when the opponent can use the super special attack, so the agent should jump to avoid it.
                 self.echo(f"Result-in not action_prob_list: {result}")
                 combined_actions = ["for_jump", "back_jump"]
                 return term2str(rng.choice(combined_actions, p=[0.8, 0.2], size=1, replace=False)[0])
@@ -400,6 +445,7 @@ class ProblogAgent(AIInterface):
             return term2str(rng.choice(actions_list, p=probabilities, size=1, replace=False)[0])
         
         except Exception as e:
+            # If here, it means that there was an error in the selection of the action. So, the agent selects a random action from the attack and move actions.
             self.echo(f"Result: {result}")
             self.echo(f"Error in select_action_from_problog_results: {e}")
             combined_actions = attack_b_actions + move_actions
@@ -407,25 +453,32 @@ class ProblogAgent(AIInterface):
             # exit(1)
 
     def processing(self):
+        """
+        Main processing loop for selecting actions
+        It uses the ProbLog knowledge base to infer the best action based on the current game state
+        It records the time taken for inference and the selected action
+        It saves the game state information for the next frame 
+        """
         if self.frame_data.empty_flag or self.frame_data.current_frame_number <= 0:
             return
         
         self.durations[self.current_round] += self.frame_data.current_frame_number
         
         if self.cc.get_skill_flag():
-            self.sent = True
             self.key = self.cc.get_skill_key()       
         
         else:
+            # The multipler is used to adjust the prediction of the opponent's position based on the speed of the opponent,
+            # or based on hit confirm of the agent. 
             multiplier = np.abs(self.frame_data.current_frame_number - self.count_frames)
             self.key.empty()
             self.cc.skill_cancel()
             current_round = self.frame_data.current_round
             # opponent_actions_type_list = self.opponent_actions_type[current_round]
-            # opponent_actions_type_list.append(self.estimate_opponent_action())
+            # opponent_actions_type_list.append(self.get_opponent_prev_action_type())
             # prev action types
             # my_actions_type_list = self.my_actions_type[current_round]
-            # my_actions_type_list.append(self.estimate_my_action())
+            # my_actions_type_list.append(self.get_my_prev_action_type())
             # updating counters based on prev opponent action type
             # self.aggressive_action = opponent_actions_type_list[-1] == "attack" or opponent_actions_type_list[-1] == "special"
             # if self.aggressive_action:
@@ -455,6 +508,8 @@ class ProblogAgent(AIInterface):
             pred_speed_x = + int(self.opponent_character_data.speed_x*1.1 if opponent_speed_list[-1][0] <  self.opponent_character_data.speed_x else + self.opponent_character_data.speed_x * 0.9)
             pred_speed_y = + int(self.opponent_character_data.speed_y*1.1 if opponent_speed_list[-1][1] <  self.opponent_character_data.speed_y else + self.opponent_character_data.speed_y * 0.9)
             # estimate opponent position
+            # if the opponent is in hit confirm, the agent should predict the opponent's position based on the impact of the attack
+            # otherwise, the agent should predict the opponent's position based on the speed of the opponent
             px = pred_speed_x
             py = pred_speed_y
             if self.my_character_data.hit_confirm:
@@ -462,8 +517,9 @@ class ProblogAgent(AIInterface):
                 py = self.my_character_data.attack_data.impact_y
             opponent_speed_list.append((self.opponent_character_data.speed_x, self.opponent_character_data.speed_y))
                 
-
+            
             facing_dir = self.default_dir.get(self.opponent_character_data.front)
+            # predict the opponent's the most close box position to the agent
             left = self.opponent_character_data.left
             right = self.opponent_character_data.right
             top = self.opponent_character_data.top
@@ -473,6 +529,7 @@ class ProblogAgent(AIInterface):
 
             x = self.opponent_character_data.x
             y = self.opponent_character_data.y
+            # final predicted position
             pred_pos_x = min(max(0, x+px), self.width_game)
             pred_pos_y = min(max(0, y+py), self.height_game)
             pred_left = min(max(0, left+px), self.width_game)
@@ -488,8 +545,8 @@ class ProblogAgent(AIInterface):
                 "bottom": pred_bottom
             })
             opponent_curr_pos_list = self.opponent_curr_pos[current_round]
-            opponent_curr_pos_list[-1] = (x, y)
-            opponent_curr_pos_list.append((pred_pos_x, pred_pos_y))
+            opponent_curr_pos_list[-1] = (x, y) # update the previous position with true position
+            opponent_curr_pos_list.append((pred_pos_x, pred_pos_y)) # add the new predicted position
 
 
             px = 0
@@ -497,7 +554,8 @@ class ProblogAgent(AIInterface):
             if self.opponent_character_data.hit_confirm:
                 px = self.opponent_character_data.attack_data.impact_x
                 py = self.opponent_character_data.attack_data.impact_y
-
+            
+            # My position prediction
             px *= int(facing_dir*multiplier)
             py *= int(facing_dir*multiplier)
     
@@ -512,21 +570,25 @@ class ProblogAgent(AIInterface):
 
             
             before_exec = time.time()
+            # Add clauses to the knowledge base, like the current state, previous state, current position, previous position, facing direction, etc.
             db = self._add_to_db_hp_energy_state()
+            # Ground the knowledge base with the new clauses
             lf = self.engine.ground_all(
                 db
             )
-            
+            # Create the SDD formula from the ground knowledge base
             self.sdd_formula = self.sdd.create_from(lf)
+            # Evaluate the SDD formula to get the probabilities of the actions
             result = self.sdd_formula.evaluate()
-
             after_exec = time.time()
+
             time_taken_list = self.time_taken[current_round]
             time_taken_list.append(after_exec - before_exec)
-            # self.echo(f"Result: {result}\n\n\n")
+
+            # Select the action to execute based on the probabilities
             action_to_execute = self.select_action_from_problog_results(result)
-            # action_to_execute ="stand_fb"
             action_to_execute = action_to_execute.upper()
+            # Sends the action to the game
             self.cc.command_call(action_to_execute)
             my_actions_inferred_list = self.my_actions_inferred[current_round]
             my_actions_inferred_list.append(action_to_execute)
@@ -536,6 +598,10 @@ class ProblogAgent(AIInterface):
             self.count_frames = self.frame_data.current_frame_number
         
     def _get_opp_facing_dir_evd(self):
+        """
+        not used
+
+        """
         my_facing_dr = self.my_character_data.front
         opp_facing_dir = self.opponent_character_data.front
         diff_facings = my_facing_dr != opp_facing_dir
@@ -544,6 +610,9 @@ class ProblogAgent(AIInterface):
         return (opp_facing_dir_evd, diff_facings)
     
     def _get_clause_approx_hit_confirm(self):
+        """
+        not used
+        """
         opponent_hps_list = self.opponent_hps[self.frame_data.current_round]
         diff_hp = opponent_hps_list[-1] - self.opponent_character_data.hp
 
@@ -551,6 +620,9 @@ class ProblogAgent(AIInterface):
         return f"approx_hit_confirm({hit_confirm}).\n"
     
     def _get_clause_count_actions(self):
+        """
+        It was used to create action count clause. It is not used in the final version.
+        """
         if self.counter_actions:
             for action, count in self.counter_actions.items():
                 yield f"count_action({action}, {count}).\n"
@@ -558,15 +630,26 @@ class ProblogAgent(AIInterface):
             yield f"count_action(stand_fb, 1).\n"
     
     def _get_clause_count_total_actions(self):
+        """
+        It was used to create total actions count clause. It is not used in the final version.
+        """
         total = self.counter_actions_total
         return f"count_total_actions({total}).\n"
 
     def _get_clause_opp_action_type(self):
+        """
+        It was used to create opponent action type clause. It is not used in the final version.
+        """
         opponent_actions_type_list = self.opponent_actions_type[self.frame_data.current_round]
         action_type = opponent_actions_type_list[-1]
         return f"opp_action_type({action_type}).\n"
 
     def _get_clause_eng_hp(self, player: str):
+        """
+        Create clauses for the current hp and energy of the player
+        Args:
+        player (str): Player name. It can be "me" or "opponent"
+        """
         hps_list = getattr(self, f'{self.name_conv.get(player)}_hps')[self.frame_data.current_round]
         energy_list = getattr(self, f'{self.name_conv.get(player)}_energy')[self.frame_data.current_round]
         str_hp = f"curr_hp_value({player}, {hps_list[-1]})"
@@ -574,10 +657,20 @@ class ProblogAgent(AIInterface):
         return f"{str_hp}.\n", f"{str_energy}.\n"
     
     def _get_clause_count_state(self, player: str):
+        """
+        Creates clauses for the current state and total states of the player. It is used to estimate the opponent's state.
+        Args:
+        player (str): Player name. It can be "me" or "opponent
+        """
         character = getattr(self, f"{self.name_conv.get(player)}_character_data")
         return f"count_state({character.state.value}, {self.counters[player][character.state.value]}).\n", f"count_total_states({self.counters[player]['total']}).\n"
     
     def _get_clause_prev_hp_energy(self, player: str):
+        """
+        Creates clauses for the previous hp and energy of the player
+        Args:
+        player (str): Player name. It can be "me" or "opponent
+        """
         prev_hp_list =  getattr(self, f"{self.name_conv.get(player)}_hps")[self.frame_data.current_round]
         prev_energy_list = getattr(self, f"{self.name_conv.get(player)}_energy")[self.frame_data.current_round]
         prev_hp =prev_hp_list[-2]
@@ -586,28 +679,57 @@ class ProblogAgent(AIInterface):
     
     
     def _get_clause_curr_pos(self, player: str):
+        """
+        Creates clauses for the current position of the player
+        Args:
+        player (str): Player name. It can be "me" or "opponent
+        """
         curr_pos_list = getattr(self, f"{self.name_conv.get(player)}_curr_pos")[self.frame_data.current_round]
         prob = 0.9
         return f"{prob}::curr_pos({player}, {curr_pos_list[-1][0]}, {curr_pos_list[-1][1]}).\n"
     
     def _get_clause_facing_dir(self, player: str):
+        """
+        Creates clauses for the facing direction of the player
+        Args:
+        player (str): Player name. It can be "me" or "opponent
+        """
         curr_facing_dir = getattr(self, f"{self.name_conv.get(player)}_character_data").front
         curr_facing_dir = self.direction.get(int(curr_facing_dir))
         return f"facing_dir({player}, {curr_facing_dir}).\n"
     
     def _get_clause_my_state(self):
-        return f"my_state({self.my_character_data.state.value}).\n"
+        """
+        Creates clauses for the current state of the agent. Used by action utility predicates.
+        """
+        return f"my_statewhether the character can act. this parameter is not delayed({self.my_character_data.state.value}).\n"
     
     def _get_hbox_clause(self, player: str):
+        """
+        Creates clauses for the current hitbox of the player
+        Args:
+        player (str): Player name. It can be "me" or "opponent
+        """
         hboxes_list = getattr(self, f"{self.name_conv.get(player)}_hboxes")[self.frame_data.current_round]
         return f"hbox({player}, [{hboxes_list[-1]['left']}, {hboxes_list[-1]['right']}, {hboxes_list[-1]['top']}, {hboxes_list[-1]['bottom']}]).\n"
     
     def _get_clause_prev_action(self, player: str):
+        """
+        Creates clauses for the previous action of the player
+        Args:
+        player (str): Player name. It can be "me" or "opponent
+        """
+
         prev_action_list = getattr(self, f"{self.name_conv.get(player)}_actions")[self.frame_data.current_round]
         return f"prev_action({player},{prev_action_list[-1]}).\n"
         
     
     def _add_to_db_hp_energy_state(self):
+        """
+        Adds the current hp, energy, state, facing direction, position, previous action, previous hp, previous energy, and hitbox of the agent and the opponent to the knowledge base
+        by extending the original knowledge base with the new clauses.
+        It gets executed before the inference of the best action.
+        """
         db = self.db_org.extend()
         
         my_str_hp, my_str_energy = self._get_clause_eng_hp("me")
@@ -655,22 +777,39 @@ class ProblogAgent(AIInterface):
    
 
     def _increment_counter(self, agent: str, state: str) -> None:
+        """
+        Increment the counter for the state of the agent
+        Args:
+        agent (str): Agent name. It can be "me" or "opponent"
+        state (str): State of the agent. It can be "stand", "down", "air", or "crouch"
+        """
         self.counters[agent][state] += 1
         self.counters[agent]['total'] += 1
 
 
-    def estimate_opponent_action(self):
+    def get_opponent_prev_action_type(self):
+        """
+        Get the opponent's previous action type
+        """
         action_type = actions_type.get(self.opponent_character_data.action.value.upper(), "attack")
 
         return action_type
     
-    def estimate_my_action(self):
+    def get_my_prev_action_type(self):
+        """
+        Get the agent's previous action type
+        """
         action_type = actions_type.get(self.my_character_data.action.value.upper(), "attack")
 
         return action_type
         
 
     def round_end(self, round_result: RoundResult):
+        """
+        Record the round result and the time taken for the round
+        WARNING: The round result is inverted for the agent. The agent's hp is the opponent's hp and vice versa
+        WARNING: Sometimes at the end of the last round is not called. It is a bug in the game engine.
+        """
         mean_time = np.mean(self.time_taken[self.current_round])
         if self.echo_actions:
             self.echo(f"Mean time taken: {mean_time}")
@@ -689,6 +828,11 @@ class ProblogAgent(AIInterface):
         
         
     def get_screen_data(self, screen_data: ScreenData):
+        """
+        Get the screen data from the game engine. Used for plotting the game screen
+        Args:
+        screen_data (ScreenData): Screen data object
+        """
         if self.plot_scenes and hasattr(self, 'display_thread') and screen_data.display_bytes:
             try:
                 if not screen_data or not screen_data.display_bytes:
@@ -706,6 +850,9 @@ class ProblogAgent(AIInterface):
         self.screen_data_raw = screen_data
 
     def _init_plots(self):
+        """
+        Initialize the display thread for plotting the game screen
+        """
         if self.plot_scenes:
             self.display_thread = DisplayThread(self.width, self.height)
             self.display_thread.start()
@@ -715,6 +862,10 @@ class ProblogAgent(AIInterface):
         self.echo("Game End")
     
     def to_dict(self):
+        """
+        Convert the agent's attributes to a dictionary
+        Used for saving the agent's statistics
+        """
         return {
             "name": self.name(),
             "my_actions_inferred": self.my_actions_inferred,
@@ -732,6 +883,10 @@ class ProblogAgent(AIInterface):
         }
 
     def close(self):
+        """
+        Close the agent
+        Save the agent's statistics
+        """
         if self.stats_tracker:
             dict_attr = self.to_dict()
             self.stats_tracker.save_stats(dict_attr)

@@ -2,7 +2,7 @@ import asyncio
 import typer
 from typing_extensions import Annotated, Optional
 from pyftg.utils.logging import DEBUG, set_logging
-from MainGameAgetVsMyAgent import start_process
+from MainGameAgentVsMyAgent import start_process
 
 app = typer.Typer(pretty_exceptions_enable=False)
 

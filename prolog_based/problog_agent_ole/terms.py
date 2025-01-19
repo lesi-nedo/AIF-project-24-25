@@ -115,7 +115,10 @@ counteractive_actions = {
     Term("stand_f_d_dfa"): (Term("for_jump"),1),
 }
 counteractive_actions['total'] = 1
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Load motion data
 motion_data = pd.read_csv(
     os.path.join(current_dir, "Motion.csv"),
     sep=',',              # Explicit comma separator
@@ -131,7 +134,7 @@ damage_amounts = motion_data['attack.HitDamage'].to_dict()
 damage_amounts['stand_fb'] = damage_amounts["stand_fb"] // 2
 energy_costs = motion_data['attack.StartAddEnergy'].apply(lambda x: np.abs(x)).to_dict()
 
-
+# Compute total damage for each type of attack
 total_damage_s = sum([damage_amounts.get(str(action), 7) for action in attack_s_actions])
 total_ba_damage = sum([damage_amounts.get(str(action), 7) for action in attack_ba_actions])
 
@@ -145,7 +148,16 @@ total_damage_s = sum([damage_amounts.get(action, 7) for action in attack_s_actio
 total_b_damage = total_bs_damage + total_ba_damage
 
 def get_attack_hit_areas(action:str, positions:dict[str,int], facing_dirs:dict[str,int], player:str) -> Tuple[int, int, int, int]:
-    
+    """
+    Calculate the hit areas for a given attack action
+    Args:
+    action (str): The attack action
+    positions (dict): The current positions of the players
+    facing_dirs (dict): The facing directions of the players
+    player (str): The player for which to calculate the hit areas
+    Returns:
+    Tuple[int, int, int, int]: The hit areas for the attack action
+    """
     str_action = str(action)
 
     hit_area_left = positions[f"{player}_x"]
@@ -171,6 +183,16 @@ def get_attack_hit_areas(action:str, positions:dict[str,int], facing_dirs:dict[s
 
 
 def can_hit(action, facing_dirs:dict, opponent_hbox:list[int], positions:dict[str,int]) -> Tuple[int, int]:
+    """
+    Check if the given action can hit the opponent
+    Args:
+    action (str): The action to check
+    facing_dirs (dict): The facing directions of the players
+    opponent_hbox (list): The hit box of the opponent
+    positions (dict): The current positions of the players
+    Returns:
+    Tuple[int, int]: A tuple indicating if the action can hit the opponent in the x and y directions
+    """
     my_hit_areas = get_attack_hit_areas(action, positions, facing_dirs, "my")
     variance_x = np.random.randint(1, 10)
     variance_y = np.random.randint(2, 8)
@@ -187,6 +209,19 @@ def can_hit(action, facing_dirs:dict, opponent_hbox:list[int], positions:dict[st
 def compute_helper(
     actions_to_check, acing_dirs:dict, total_damage:int, 
     positions:dict[str, int], opponent_hbox:list[int], base_weights:list[float] = None) -> Tuple[int, int]:
+    """
+    Estimate the actions that can hit the opponent and their weights based on the damage dealt
+    Args:
+    actions_to_check (list): The actions to check
+    facing_dirs (dict): The facing directions of the players
+    total_damage (int): The total damage dealt by the actions
+    positions (dict): The current positions of the players
+    opponent_hbox (list): The hit box of the opponent
+    base_weights (list): The base weights for the actions
+    Returns:
+    Tuple[int, int]: The actions that can hit the opponent and their weights
+    """
+
     actions = []
     weights = []
 
@@ -213,7 +248,20 @@ def compute_helper(
 def evaluate_state(my_x: int, op_x: int, my_y: int, op_y: int, 
                   my_health: int, op_health: int, my_energy: int, 
                   distance: int) -> float:
-    """Evaluate current battle state with improved metrics"""
+    """
+    Evaluate the current state of the game for the agent
+    Args:
+    my_x (int): The x position of the agent
+    op_x (int): The x position of the opponent
+    my_y (int): The y position of the agent
+    op_y (int): The y position of the opponent
+    my_health (int): The health of the agent
+    op_health (int): The health of the opponent
+    my_energy (int): The energy of the agent
+    distance (int): The distance between the agent and the opponent
+    Returns:
+    float: The score of the state
+    """
     score = 0.0
     
     optimal_range = 200
@@ -257,6 +305,15 @@ def evaluate_state(my_x: int, op_x: int, my_y: int, op_y: int,
     return max(min(score, 1.0), 0.0)
 
 def equal_more_or_less(my_val: int, op_val: int, threshold: int) -> str:
+    """
+    Check if the values are equal or within a threshold
+    Args:
+    my_val (int): The value of the agent
+    op_val (int): The value of the opponent
+    threshold (int): The threshold to check
+    Returns:
+    str: A string indicating the result of the check
+    """
     if my_val > op_val + threshold:
         return False
     if my_val < op_val - threshold:
@@ -267,6 +324,20 @@ def get_eff_actions(
         distance_x: int, distance_y: int, my_prev_action: str, score: float, 
         opponent_pred_action_type: str, opponent_prev_action:str,
         my_y:int, opp_y:int ) -> Tuple[list, list]:
+    """
+    Get the effective actions based on the current state, which are long-range, anti-air.
+    Args:
+    distance_x (int): The distance in the x direction
+    distance_y (int): The distance in the y direction
+    my_prev_action (str): The previous action of the agent
+    score (float): The score of the current state
+    opponent_pred_action_type (str): The predicted action type of the opponent
+    opponent_prev_action (str): The previous action of the opponent
+    my_y (int): The y position of the agent
+    opp_y (int): The y position of the opponent
+    Returns:
+    Tuple[list, list]: The effective actions and their weights
+    """
     local_actions = []
     local_weights = None
     
@@ -287,28 +358,42 @@ def get_eff_actions(
 
 def get_action_weights(actions: list, state_score: float, base_weights: list,
                       opponent_action_type: str, opponent_prev_action: Term, my_prev_action:Term, my_y:int, opp_y:int) -> list:
-    """Calculate action weights based on state evaluation"""
+    """
+    Get the weights for the actions based on different factors
+    Args:
+    actions (list): The actions to get the weights for
+    state_score (float): The score of the current state
+    base_weights (list): The base weights for the actions
+    opponent_action_type (str): The action type of the opponent
+    opponent_prev_action (Term): The previous action of the opponent
+    my_prev_action (Term): The previous action of the agent
+    my_y (int): The y position of the agent
+    opp_y (int): The y position of the opponent
+    Returns:
+    list: The weights for the actions
+    """
     base_weights = base_weights.copy()
 
     for indx, action in enumerate(actions):
         weight = 1.0
-
-        if "jump" in str(my_prev_action) and action in arial_moves_actions:
+        # Gives a bonus to jump attacks when the opponent is in the air
+        if ("jump" in str(my_prev_action) or my_y > opp_y) and action in arial_moves_actions:
             weight = 2.0
-        
+        # Gives a bonus to anti-air attacks when the opponent is in the air
         if "jump" in str(opponent_prev_action) and action in anti_air_actions:
             weight = 2.0
-        
+        # Gives a penalty to jump actions when the opponent is on the ground
         if "jump" in str(action) and (my_y > opp_y or my_y < opp_y):
             weight = 0.5
+        # Gives a penalty to arial actions when the opponent is on the ground
         if my_y < opp_y and action in arial_moves_actions:
             weight = 0.5
+        
+        # Gives a penalty to anti-air actions when the agent is in the air
         if my_y > opp_y and action in anti_air_actions:
             weight = 0.5
 
-        if my_y > opp_y and action in arial_moves_actions:
-            weight = 1.5
-        
+        # Gives a bonus to long-range attacks when the opponent is close
         if equal_more_or_less(my_y, opp_y, 50) and action in long_attack_actions:
             weight = 2.5
         
@@ -325,6 +410,8 @@ def get_action_weights(actions: list, state_score: float, base_weights: list,
         if action in move_actions:
             if state_score < 0.4:  # Defensive movement when disadvantaged
                 weight *= 1.5
+
+        # Gives a bonus based on the effectiveness of the action
         if action in most_effective_actions:
             weight += 2.5 * most_effective_actions[action] / most_effective_actions["total"]
                 
@@ -335,6 +422,26 @@ def check_and_update(
         my_prev_action, opponent_prev_action, my_prev_action_type, opponent_prev_action_type, my_health, my_prev_health, 
         opp_health, my_curr_energy, my_prev_energy, distance_y, distance_x, opp_prev_health):
     if my_prev_action_type == "attack" and (opponent_prev_action_type == "attack" or opponent_prev_action_type == "special"):
+        """
+        Check if the agent's previous action was an attack and the opponent's previous action was an attack or special move
+        then update the counteractive actions if the agent's previous action was effective to counter the opponent's action based on heuristics
+
+        args:
+        my_prev_action (str): The previous action of the agent
+        opponent_prev_action (str): The previous action of the opponent
+        my_prev_action_type (str): The type of the agent's previous action
+        opponent_prev_action_type (str): The type of the opponent's previous action
+        my_health (int): The health of the agent
+        my_prev_health (int): The previous health of the agent
+        opp_health (int): The health of the opponent
+        my_curr_energy (int): The current energy of the agent
+        my_prev_energy (int): The previous energy of the agent
+        distance_y (int): The distance in the y direction
+        distance_x (int): The distance in the x direction
+        opp_prev_health (int): The previous health of the opponent
+
+        Note: Not used in the current implementation
+        """
         if ((my_health == my_prev_health and my_curr_energy >= my_prev_energy) or 
             (opp_health < opp_prev_health)):
             if distance_y < CAN_HIT_Y and distance_x < MAX_CAN_HIT_X:
@@ -344,6 +451,11 @@ def check_and_update(
                 counteractive_actions["total"] += 1
 
 def get_one_foreach_random_action() -> list:
+    """
+    Get a random action for each type of action
+    Returns:
+    list: The random actions
+    """
     rand_b_action = rng.choice(attack_b_actions, size=1, replace=False)
     random_d_action = rng.choice(defensive_actions, size=1, replace=False)
     random_m_action = rng.choice(move_actions, size=1, replace=False)
@@ -360,13 +472,38 @@ def possible_actions(
         opponent_pred_action_type: str, my_prev_action: str, opponent_prev_action,
         opponent_hbox: list[int]
     ) -> list[str]:
+    """
+    Get k best possible actions for the agent based on different factors. This is used as clause in the Problog Knowledge Base.
+    Args:
+    my_x (int): The x position of the agent
+    op_x (int): The x position of the opponent
+    my_y (int): The y position of the agent
+    op_y (int): The y position of the opponent
+    my_facing_dir (int): The facing direction of the agent
+    my_health (int): The health of the agent
+    my_prev_health (int): The previous health of the agent
+    opp_health (int): The health of the opponent
+    opp_prev_health (int): The previous health of the opponent
+    my_curr_energy (int): The current energy of the agent
+    my_prev_energy (int): The previous energy of the agent
+    opponent_curr_energy (int): The current energy of the opponent
+    opponent_prev_energy (int): The previous energy of the opponent
+    opponent_pred_action_type (str): The predicted action type of the opponent
+    my_prev_action (str): The previous action of the agent
+    opponent_prev_action (str): The previous action of the opponent
+    opponent_hbox (list): The hit box of the opponent
+    Returns:
+    list[str]: The k best possible actions for the agent, chosen randomly based on the weights
+    """
     distance_x = np.abs(my_x - op_x)
     distance_y = np.abs(my_y - op_y)
     positions = {
         "my_x": my_x, "op_x": op_x, "my_y": my_y, "op_y": op_y
     }
+    # evaluate the state of the game
     score = evaluate_state(my_x, op_x, my_y, op_y, my_health, opp_health, my_curr_energy, distance_x)
     facing_dirs = {"my_facing_dir": my_facing_dir, "op_facing_dir": my_facing_dir * -1}
+    # Holds the probability to be aggressive
     global AGGRESSIVE_PROB
     opponent_prev_action = Term(opponent_prev_action)
     my_prev_action = Term(my_prev_action)
@@ -378,6 +515,7 @@ def possible_actions(
     
     
     if my_prev_action_type == "special" or my_prev_action_type == "attack":
+        # Given a bonus to the most effective actions, again.
         bonus = 0
         if my_curr_energy > my_prev_energy:
             bonus += 1
@@ -392,25 +530,30 @@ def possible_actions(
     prob = np.random.random()
 
     if my_health < 150:
-            AGGRESSIVE_PROB=1.0
+        # If health is low, the agent becomes more aggressive
+        AGGRESSIVE_PROB=1.0
         
         
     if (opponent_curr_energy >= ENERGY_BEST_SPECIAL - 2):
+        # If the opponent has enough energy to use a special move, the agent jumps
         return [Term("for_jump")]
     
     if opponent_curr_energy > 9 and distance_y < CAN_HIT_Y-np.random.randint(10, 30) and distance_x > MAX_CAN_HIT_X + np.random.randint(0, 40):
         if ((opponent_pred_action_type == "special" and prob > AGGRESSIVE_PROB) or 
             opponent_curr_energy < opponent_prev_energy):
+            # If the opponent is likely to use a special move, the agent jumps
             return [Term("for_jump")]
     
     random_energy = np.random.randint(0, 10)
     if my_curr_energy >= ENERGY_BEST_SPECIAL + random_energy and distance_y <= CAN_HIT_Y:
+        # If the agent has enough energy to use a special move, it uses it 
         if distance_x > np.random.randint(40, 70):
             return [Term("stand_d_df_fc")]
         else:
             return [Term("back_jump"), Term("for_jump")]
     
     if distance_x > MAX_CAN_HIT_X+np.random.randint(0, 40):
+        # If the opponent is far away, the agent moves forward
         actions.extend(forward_actions)
         weights.extend(get_action_weights(
             forward_actions, score, probabilities_forward, 
@@ -424,7 +567,8 @@ def possible_actions(
         if (my_curr_energy > 4 and 
                 random.random() > EPSILON_PROB and distance_y < CAN_HIT_Y
             ):
-            
+            # If the agent has enough energy and the opponent is close, it uses a special move with 1-EPSILON_PROB probability. 
+            # Higher probability of EPSILON_PROB the more energy the agent will have
             for s_action in attack_s_actions:
                 if energy_costs.get(str(s_action)) < my_curr_energy:
                     local_actions, local_weights = compute_helper([s_action], facing_dirs, total_damage_s, opponent_hbox=opponent_hbox, positions=positions)
@@ -435,10 +579,12 @@ def possible_actions(
                     weights.extend(local_weights)
         
         if distance_y > CAN_HIT_Y + np.random.randint(10, 20) and my_y < op_y - np.random.randint(10, 20):
+            # If the opponent is in the air. The agent can move back.
             actions.extend(backward_actions)
             weights.extend(probabilities_backward)
         
         if (not opponent_pred_action_type == "attack" or random.random() < AGGRESSIVE_PROB):
+            # If the opponent's predicted action type is not an attack or the probability of being aggressive is true
             actions_local, base_weights = compute_helper(attack_b_actions, facing_dirs, total_b_damage,opponent_hbox=opponent_hbox, positions=positions)
             base_weights = list(map(add, base_weights, probabilities_attack_b))
             weights.extend(get_action_weights(
@@ -447,13 +593,15 @@ def possible_actions(
             actions.extend(actions_local)
             AGGRESSIVE_PROB = min(MIN_AGGRESSIVE_PROB, AGGRESSIVE_PROB - 0.0001*my_prev_health/my_health)
         else:
-            
+            # If the opponent's predicted action type is an attack or the probability of being aggressive is false
+            # The agent uses non-attack actions
   
             actions.extend(non_attack_actions)
             weights.extend(get_action_weights(non_attack_actions, score, probabilities_non_attack, opponent_pred_action_type,
                                               opponent_prev_action, my_prev_action, my_y, op_y))
         
-        
+        # Check if are there any actions
+        # Also if score is low, the agent becomes more defensive or uses long-range attacks or anti-air attacks (which might down the opponent)
         if len(actions) == 0 or score < 0.5:
             local_actions = []
             local_weights = None
@@ -477,6 +625,7 @@ def possible_actions(
 
         weights_sum = sum(weights)
         probabilities = [w/weights_sum for w in weights]
+        # Choose two actions based on the probabilities
         return rng.choice(a=actions, p=probabilities, size=2, replace=False).tolist()
     return actions
 

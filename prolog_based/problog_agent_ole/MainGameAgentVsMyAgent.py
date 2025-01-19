@@ -25,6 +25,23 @@ async def start_process(
         host:str , port: int, character: str = "ZEN", game_number: int = 1, keep_stats: bool = False,  echo_actions: bool = False,
         plot_scenes: bool = False, simo_agent: bool = False, marco_agent: bool = False, fightice_agent: bool = False
     ):
+        """
+        Start the process to run the game between the PrologAgent and the chosen agent.
+        The chosen agent can be the PrologAI, the MctsAi or MctsAi23i.
+
+        Parameters:
+        host (str): The host used by DareFightingICE
+        port (int): The port used by DareFightingICE
+        character (str): The character to be used in the game
+        game_number (int): The number of games to be played
+        keep_stats (bool): Flag to indicate if the statistics should be kept
+        echo_actions (bool): Flag to indicate if the actions should be echoed
+        plot_scenes (bool): Flag to indicate if the scenes should be plotted
+        simo_agent (bool): Flag to indicate if the PrologAI should be used
+        marco_agent (bool): Flag to indicate if the MctsAi should be used
+        fightice_agent (bool): Flag to indicate if the MctsAi23i should be used
+        
+        """
 
 
         gateway = Gateway(host, port)

@@ -7,6 +7,28 @@ import seaborn as sns
 
 
 def analyse(path_file):
+    """
+        Perform analysis on the match files in the given path.
+        The analysis includes:
+        - Win rate
+        - Loss rate
+        - Overall match outcome distribution
+        - Landslide match outcome distribution
+        - Match outcomes
+        - Average damage per round
+        - Action usage frequency
+        - Round duration distribution
+        - Remaining HP distribution
+        - Correlation between round metrics
+        - Damage efficiency distribution
+        - Damage dealt vs received over time
+
+        Parameters:
+        path_file (str): Path to the match files
+
+        Returns:
+        None
+    """
     match_files = glob.glob(path_file)
     match_stats = []
     round_stats = []
@@ -119,6 +141,20 @@ def analyse(path_file):
     plt.show()
     
 def analyze_inference_and_actions(path_file):
+    """
+        Perform analysis on the match files in the given path.
+        The analysis includes:
+        - Distribution of inference times
+        - Inference time trend
+        - Top 10 executed actions
+        - Top 10 inferred actions
+
+        Parameters:
+        path_file (str): Path to the match files
+
+        Returns:
+        None
+    """
     match_files = glob.glob(path_file)
     
     all_inference_times = []

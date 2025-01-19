@@ -37,6 +37,15 @@ class MatchStats:
     avg_damage_per_round: float
     
 class StatsTracker:
+    """
+    Class to track and save statistics of the matches played
+    Attributes:
+    current_match (MatchStats): The current match being played
+    current_round (RoundStats): The current round being played
+    match_history (List[MatchStats]): List of all matches played
+    stats_file (str): Name of the stats file
+    stats_folder (str): Name of the folder to save the stats
+    """
     def __init__(self, ai_name1, ai_name2):
         self.current_match = None
         self.current_round = None
@@ -47,6 +56,13 @@ class StatsTracker:
  
 
     def create_from_dict(self, data_obj: dict):
+        """
+        Create MatchStats object from the given dictionary
+        Parameters:
+        data_obj (dict): Dictionary containing the match data
+        Returns:
+        MatchStats: MatchStats object
+        """
         num_rounds = data_obj["num_rounds"]
         for_loop_round = num_rounds + 1
         new_match = MatchStats(
@@ -102,6 +118,11 @@ class StatsTracker:
 
     
     def save_stats(self, attr_dict: dict):
+        """
+        Save the statistics to a file
+        Parameters:
+        attr_dict (dict): Dictionary containing the match data
+        """
         try:
             match_obj = self.create_from_dict(attr_dict)
             stats_file = self.stats_file + match_obj.match_id + ".json"
