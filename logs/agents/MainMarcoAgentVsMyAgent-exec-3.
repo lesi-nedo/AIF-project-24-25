@@ -1,20 +1,14 @@
 Project root: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25-M
-Starting the process with host: 127.0.0.1, port: 27719
-2025-01-18 22:28:31,015 - INFO - Start P1 AI controller task (MctsAi)
-2025-01-18 22:28:31,015 - INFO - Start P2 AI controller task (ProblogAgent)
-2025-01-18 22:28:31,119 - INFO - initialize
-2025-01-18 22:29:10,884 - INFO - round end: RoundResult(current_round=1, remaining_hps=[0, 242], elapsed_frame=2243)
-Mean time taken: 0.025629489966060803
- My hp left: 242, Opponent hp left: 0
-2025-01-18 22:30:03,461 - INFO - round end: RoundResult(current_round=2, remaining_hps=[0, 131], elapsed_frame=3081)
-Mean time taken: 0.03140308950569558
- My hp left: 131, Opponent hp left: 0
+Starting the process with host: 127.0.0.1, port: 33580
+2025-01-19 16:43:53,699 - INFO - Start P1 AI controller task (MctsAi)
+2025-01-19 16:43:53,699 - INFO - Start P2 AI controller task (ProblogAgent)
+2025-01-19 16:43:53,826 - INFO - initialize
+2025-01-19 16:44:33,042 - INFO - round end: RoundResult(current_round=1, remaining_hps=[0, 253], elapsed_frame=2210)
 Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
-Mean time taken: 0.02746561376806249
- My hp left: 310, Opponent hp left: 0
-Game End
-2025-01-18 22:30:44,577 - INFO - round end: RoundResult(current_round=3, remaining_hps=[0, 310], elapsed_frame=2467)
-2025-01-18 22:30:44,577 - INFO - game end
-2025-01-18 22:30:49,610 - INFO - Closing MonteCarlo Agent
-2025-01-18 22:30:49,613 - INFO - Closing ProblogAgent
-Saving stats to path: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25-M/prolog_based/problog_agent_ole/stats_temp
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+2025-01-19 16:45:19,042 - INFO - round end: RoundResult(current_round=2, remaining_hps=[0, 144], elapsed_frame=2760)
+2025-01-19 16:46:03,302 - INFO - round end: RoundResult(current_round=3, remaining_hps=[0, 189], elapsed_frame=2583)
+2025-01-19 16:46:03,307 - INFO - game end
+2025-01-19 16:46:08,325 - INFO - Closing MonteCarlo Agent
+2025-01-19 16:46:08,328 - INFO - Closing ProblogAgent
+Saving stats to path: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25-M/prolog_based/problog_agent_ole/stats

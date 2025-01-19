@@ -1,14 +1,15 @@
 Project root: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25-M
-Starting the process with host: 127.0.0.1, port: 27718
-2025-01-18 22:28:27,733 - INFO - Start P1 AI controller task (MctsAi)
-2025-01-18 22:28:27,733 - INFO - Start P2 AI controller task (ProblogAgent)
-2025-01-18 22:28:27,827 - INFO - initialize
-Mean time taken: 0.028357784991592805
- My hp left: 72, Opponent hp left: 0
-2025-01-18 22:29:16,098 - INFO - round end: RoundResult(current_round=1, remaining_hps=[0, 72], elapsed_frame=2752)
-Mean time taken: 0.030909513626295775
- My hp left: 144, Opponent hp left: 0
-2025-01-18 22:30:01,285 - INFO - round end: RoundResult(current_round=2, remaining_hps=[0, 144], elapsed_frame=2639)
-2025-01-18 22:30:59,434 - INFO - Closing MonteCarlo Agent
-2025-01-18 22:30:59,437 - INFO - Closing ProblogAgent
-Saving stats to path: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25-M/prolog_based/problog_agent_ole/stats_temp
+Starting the process with host: 127.0.0.1, port: 33579
+2025-01-19 16:43:51,755 - INFO - Start P1 AI controller task (MctsAi)
+2025-01-19 16:43:51,755 - INFO - Start P2 AI controller task (ProblogAgent)
+2025-01-19 16:43:51,865 - INFO - initialize
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+2025-01-19 16:44:21,314 - INFO - round end: RoundResult(current_round=1, remaining_hps=[0, 208], elapsed_frame=1623)
+2025-01-19 16:45:02,130 - INFO - round end: RoundResult(current_round=2, remaining_hps=[0, 294], elapsed_frame=2449)
+Result-in not action_prob_list: {find_my_best_action(X3,X4): 0.0}
+Game End
+2025-01-19 16:45:37,497 - INFO - round end: RoundResult(current_round=3, remaining_hps=[0, 358], elapsed_frame=2050)
+2025-01-19 16:45:37,497 - INFO - game end
+2025-01-19 16:45:42,530 - INFO - Closing MonteCarlo Agent
+2025-01-19 16:45:42,534 - INFO - Closing ProblogAgent
+Saving stats to path: /home/lesi-nedo/Desktop/master/first-year/first-semester/AIF/AIF-project-24-25-M/prolog_based/problog_agent_ole/stats

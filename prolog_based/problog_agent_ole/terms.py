@@ -93,6 +93,7 @@ CAN_HIT_Y = 55
 STAGE_WIDTH = 960
 STAGE_HEIGHT = 640
 MAX_CAN_HIT_X = 200
+BEST_K_ATTACKS = 4
 WEIGHTS = {
     'distance': 0.25,
     'health': 0.25,
@@ -560,7 +561,8 @@ def possible_actions(
             opponent_pred_action_type, opponent_prev_action, my_prev_action, my_y, op_y))
         sum_weights = sum(weights)
         probabilities = [w/sum_weights for w in weights]
-        return rng.choice(actions, p=probabilities, size=2, replace=False).tolist()
+        # Three is the maximum number of actions to return
+        return rng.choice(actions, p=probabilities, size=min(BEST_K_ATTACKS, 3), replace=False).tolist()
     
     else:
     
@@ -620,13 +622,13 @@ def possible_actions(
             weights = local_weights
     total_actions = len(actions)
     if total_actions > 0:
-        if total_actions < 4:
+        if total_actions < BEST_K_ATTACKS + 1:
             return actions
 
         weights_sum = sum(weights)
         probabilities = [w/weights_sum for w in weights]
         # Choose two actions based on the probabilities
-        return rng.choice(a=actions, p=probabilities, size=2, replace=False).tolist()
+        return rng.choice(a=actions, p=probabilities, size=BEST_K_ATTACKS, replace=False).tolist()
     return actions
 
 
