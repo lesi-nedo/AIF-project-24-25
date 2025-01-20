@@ -50,7 +50,7 @@ You should see the following screen:
 
 ### Python Integration
 
-Now we need to integrate the Python code with the game. To do this, we need to:
+To integrate the Python code with the game, we need to:
 
 - Create a virtual environment with a specific python version. I use `conda` for this purpose.
 
@@ -64,18 +64,11 @@ conda create -n AIF python=3.12
 conda activate AIF
 ```
 
-- Next, we need to install all the required packages in `requirements.txt` file, which are: 
-```python
-pyftg==2.3b0
-typer~=0.12.2
-typing_extensions~=4.8.0
-```
-with the command:
+- Next, we need to install all the required packages in `requirements.txt` file with the command:
 ```bash
 pip install -r requirements.txt
 ```
-
-Now we are all set to integrate the Python code with the game.
+No we are ready to create our AI agent.
 
 ### Example of Python Integration
 
