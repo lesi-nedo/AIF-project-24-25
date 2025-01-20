@@ -80,14 +80,40 @@ The `monitor_restart.sh` script is a Bash utility designed to automate the proce
 
 ## Logging
 
-The script provides informative logging with different levels:
+The script includes a sophisticated logging system with colored output:
 
-- **DEBUG**
-- **INFO**
-- **WARN**
-- **ERROR**
+- **DEBUG** (Cyan): Detailed debugging information
+- **INFO** (Green): General information about script operation
+- **WARN** (Yellow): Warning messages that don't stop execution
+- **ERROR** (Red): Critical errors that may stop execution
 
-Logs are timestamped and color-coded for better readability.
+Example log output:
+```
+[2024-01-20 15:30:45] [INFO] Starting script execution
+[2024-01-20 15:30:46] [WARN] Process already running
+[2024-01-20 15:30:47] [ERROR] Failed to create log file
+```
+
+## Virtual Environment Support
+
+The script now supports multiple Python virtual environment types:
+
+1. **Conda Environments**: Automatically detects and activates Conda environments
+2. **Standard venv/virtualenv**: Supports traditional Python virtual environments
+3. **pyenv**: Supports pyenv-managed virtual environments
+
+The script will attempt to activate the environment in this order and use the first successful match.
+
+## Terminal Handling
+
+The script now supports multiple terminal emulators:
+
+1. gnome-terminal (default)
+2. x-terminal-emulator
+3. xterm
+4. konsole
+
+The script will try each terminal emulator in sequence until it finds one that's available on the system.
 
 ## Exclusion Patterns
 

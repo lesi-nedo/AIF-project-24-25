@@ -466,7 +466,7 @@ class ProblogAgent(AIInterface):
         if self.cc.get_skill_flag():
             self.key = self.cc.get_skill_key()       
         
-        else:
+        elif self.is_control:
             # The multipler is used to adjust the prediction of the opponent's position based on the speed of the opponent,
             # or based on hit confirm of the agent. 
             multiplier = np.abs(self.frame_data.current_frame_number - self.count_frames)
