@@ -108,23 +108,3 @@ Install SWI-Prolog for your operating system:
     ```
 
 Enjoy your AI battles in DareFightingICE! 🎮
-
-
-
-
-## Running the Agents 🏃‍♂️
-1. **Start the DareFightingICE server:**
-    By running the appropriate script in the `DareFightingICE-7.0beta` directory.
-    E.g. `DareFightingICE-7.0beta\run-linux-amd64.sh` on Linux.
-
-    !IMPORTANT! The server must be running before starting the agents.
-    !IMPORTANT! The command inside the script must be run with `--pyftg-mode` flag.
-
-2. **Navigate to the project directory:**
-    ```sh
-    cd prolog_based/prolog_agent_ole
-    ```
-
-3. 
-
-Enjoy your AI battles in DareFightingICE! 🎮 ```
